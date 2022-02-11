@@ -1,5 +1,6 @@
 from time import time
 from typing import List, Optional
+from constants.timeframe import TimeFrame
 
 from opportunity.opportunity import Opportunity
 
@@ -10,6 +11,7 @@ class BaseStrategy:
         self.timeframe = timeframe
     
     def set_data(self, list_of_tickers: list(), dict_of_dataframes: dict()):
+        # TODO Ensure dataframe has enough entries
         self.list_of_tickers = list_of_tickers
         self.dict_of_dataframes = dict_of_dataframes
 
