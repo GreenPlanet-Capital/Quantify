@@ -1,35 +1,20 @@
 import os, sys
-from re import L
+
+from constants.strategy_defs import get_strategy_definitons
 sys.path.append(os.getcwd())
 
-import inspect
-
 from strats.base_strategy import BaseStrategy
-from strats.macd_rsi import Macd_Rsi
 
 strat_name_to_id = dict()
 strat_id_to_class = dict()
+strat_id_to_TimeFrame = dict()
 
 def setup_strategies():
     global strat_name_to_id
     global strat_id_to_class
+    global strat_id_to_TimeFrame
 
-    strat_name_to_id = {
-    "MACD_RSI": 0
-    }
-    class Strategies:
-        def macd_rsi(self):
-            return Macd_Rsi()
-
-    assert len(strat_name_to_id) == \
-        len(inspect.getmembers(Strategies, inspect.isfunction)), "Lengths Mismatch: Add a strategy to both strat_name_to_id and the Strategies class"
-    
-    strats = Strategies()
-
-    strat_id_to_class = { 
-        id: getattr(strats, name.lower())()
-        for name, id in strat_name_to_id.items()
-    }
+    strat_name_to_id, strat_id_to_class, strat_id_to_TimeFrame = get_strategy_definitons()
 
 dict_of_dfs = dict()
 list_of_final_symbols = []

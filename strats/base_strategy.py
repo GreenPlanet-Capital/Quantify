@@ -1,9 +1,13 @@
+from time import time
 from typing import List, Optional
 
 from opportunity.opportunity import Opportunity
 
 
 class BaseStrategy:
+
+    def __init__(self, timeframe: TimeFrame) -> None:
+        self.timeframe = timeframe
     
     def set_data(self, list_of_tickers: list(), dict_of_dataframes: dict()):
         self.list_of_tickers = list_of_tickers
