@@ -1,6 +1,4 @@
 import os, sys
-import os
-import sys
 sys.path.append(os.getcwd())
 from strats.macd_rsi import Macd_Rsi
 
