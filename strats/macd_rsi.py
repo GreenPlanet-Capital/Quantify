@@ -24,6 +24,7 @@ class Macd_Rsi(BaseStrategy):
         ticker_to_score_df: pd.DataFrame = dict()
         
         for ticker in tqdm(self.list_of_tickers, desc=f"{self.sid}: {self.name} "):
+            # FIXME: An arbitary price of 80 was chosen here
             if self.dict_of_dataframes[ticker]['close'].mean() < 80:
                 ticker_to_score_df[ticker] = pd.DataFrame([[0, 0]], columns = ['Score', 'Buy/Sell Signal'])
                 continue
@@ -38,6 +39,7 @@ class Macd_Rsi(BaseStrategy):
         score_df = pd.DataFrame(data, columns = ['Ticker', 'Score', 'Buy/Sell Signal'])
         score_df.sort_values(by='Score', ascending=False, inplace=True)
         print(score_df)
+        score_df.to_csv('results.csv')
         self._zero_data()
 
     def _score(self) -> pd.Series:

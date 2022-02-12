@@ -33,7 +33,7 @@ def setup_data():
 
     # Now import DataManager
     from DataManager.datamgr import data_manager
-    this_manager = data_manager.DataManager(limit=10, update_before=False, exchangeName = 'NYSE', isDelisted=False)
+    this_manager = data_manager.DataManager(update_before=False, exchangeName = 'NYSE', isDelisted=False)
     dict_of_dfs = this_manager.get_stock_data('2021-06-01 00:00:00', 
                                             '2022-02-11 00:00:00',
                                             api='Alpaca')
