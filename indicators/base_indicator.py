@@ -3,6 +3,7 @@ from pandas import DataFrame
 
 class BaseIndicator:
     def set_dataframe(self, dataframe: DataFrame):
+        assert dataframe['close'].isna().sum()==0, "NaNError: There are NaN values in the Dataframe supplied"
         self._dataframe = dataframe
 
     def _zero_dataframe(self):
