@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append(os.getcwd())
 from typing import List
-
+from constants.datamanager_settings import setup_datamgr_settings
 from constants.strategy_defs import get_strategy_definitons
 from opportunity.opportunity import Opportunity
 
@@ -26,10 +26,7 @@ def setup_data():
     global dict_of_dfs
     global list_of_final_symbols
 
-    sys.path.append('DataManager') # Insert DataManager to path
-
-    # Set env variable to absolute path of datamanager folder
-    os.environ['DATAMGR_ABS_PATH'] = '/Users/atharvakale/scripts/RobinhoodPartner/DataManager'
+    setup_datamgr_settings()
 
     # Now import DataManager
     from DataManager.datamgr import data_manager
