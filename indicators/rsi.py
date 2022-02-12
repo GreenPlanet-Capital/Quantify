@@ -11,7 +11,6 @@ class Rsi(BaseIndicator):
         super().run()
 
         assert len(self._dataframe['close'])>=self.window_length+1, "Not enough entries in input dataframe to calculate RSI"
-        assert self._dataframe['close'].isna().sum()==0, "NaNError: There are NaN values in the Dataframe supplied"
 
         rsi_df = DataFrame()
 
@@ -50,7 +49,10 @@ class Rsi(BaseIndicator):
         # Calculate RSI
         rsi_df['rsi'] = 100 - (100 / (1.0 + rsi_df['rs']))
 
+        to_return_rsi_df = DataFrame()
+        to_return_rsi_df['rsi'] = rsi_df['rsi']
+
         self._zero_dataframe()
-        return rsi_df['rsi']
+        return to_return_rsi_df
 
         

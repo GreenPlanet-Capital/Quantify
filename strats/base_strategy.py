@@ -7,11 +7,17 @@ from opportunity.opportunity import Opportunity
 
 class BaseStrategy:
 
-    def __init__(self, timeframe: TimeFrame) -> None:
+    def __init__(self, timeframe: TimeFrame, lookback) -> None:
         self.timeframe = timeframe
+        self.lookback = lookback
     
     def set_data(self, list_of_tickers: list(), dict_of_dataframes: dict()):
-        # TODO Ensure dataframe has enough entries
+        lengths = [len(df) for df in dict_of_dataframes.values()]
+        max_rows = max(lengths)
+        min_rows = min(lengths)
+        assert all([max_rows==len(df) for df in dict_of_dataframes.values()]), "Lengths Mismatch: Not all dataframes in the dictionary are of the same length"
+        assert min_rows>=self.timeframe.length
+        
         self.list_of_tickers = list_of_tickers
         self.dict_of_dataframes = dict_of_dataframes
 
