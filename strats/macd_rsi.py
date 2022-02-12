@@ -26,6 +26,7 @@ class Macd_Rsi(BaseStrategy):
         for ticker in tqdm(self.list_of_tickers, desc=f"{self.sid}: {self.name} "):
             if self.dict_of_dataframes[ticker]['close'].mean() < 80:
                 ticker_to_score_df[ticker] = pd.DataFrame([[0, 0]], columns = ['Score', 'Buy/Sell Signal'])
+                continue
             self.rsi.set_dataframe(self.dict_of_dataframes[ticker])
             self.macd.set_dataframe(self.dict_of_dataframes[ticker])
             
