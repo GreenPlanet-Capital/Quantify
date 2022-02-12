@@ -1,5 +1,5 @@
 from time import time
-from typing import List, Optional
+from typing import List
 from constants.timeframe import TimeFrame
 
 from opportunity.opportunity import Opportunity
@@ -7,7 +7,9 @@ from opportunity.opportunity import Opportunity
 
 class BaseStrategy:
 
-    def __init__(self, timeframe: TimeFrame, lookback) -> None:
+    def __init__(self, sid: int, name: str, timeframe: TimeFrame, lookback) -> None:
+        self.sid = sid
+        self.name = name
         self.timeframe = timeframe
         self.lookback = lookback
     
@@ -16,7 +18,7 @@ class BaseStrategy:
         max_rows = max(lengths)
         min_rows = min(lengths)
         assert all([max_rows==len(df) for df in dict_of_dataframes.values()]), "Lengths Mismatch: Not all dataframes in the dictionary are of the same length"
-        assert min_rows>=self.timeframe.length
+        assert min_rows>=self.timeframe.length, "Lengths Mismatch: Not enough entries supplied for this strategy"
         
         self.list_of_tickers = list_of_tickers
         self.dict_of_dataframes = dict_of_dataframes

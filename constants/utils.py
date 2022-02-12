@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 def get_normalized_value(x, lower_bound, upper_bound, max_x, min_x):
     return ((upper_bound-lower_bound)*(x - min_x))/(max_x - min_x) + lower_bound
 
