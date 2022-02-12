@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from constants.utils import normalize_values
 from indicators.base_indicator import BaseIndicator
 
 
@@ -51,6 +52,8 @@ class Rsi(BaseIndicator):
 
         to_return_rsi_df = DataFrame()
         to_return_rsi_df['rsi'] = rsi_df['rsi']
+
+        to_return_rsi_df['Normalized RSI'] = normalize_values(normalize_values(to_return_rsi_df['rsi'], -1, 1).abs(), 0, 1)
 
         self._zero_dataframe()
         return to_return_rsi_df

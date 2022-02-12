@@ -2,7 +2,7 @@ from time import time
 from typing import List
 from constants.timeframe import TimeFrame
 
-from opportunity.opportunity import Opportunity
+from positions.opportunity import Opportunity
 
 
 class BaseStrategy:

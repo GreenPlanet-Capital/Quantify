@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from constants.utils import normalize_values
 from indicators.base_indicator import BaseIndicator
 import matplotlib.pyplot as plt
 
@@ -25,6 +26,13 @@ class Macd(BaseIndicator):
             macd_and_signal_line['MACD'].iloc[i]=None
             macd_and_signal_line['MACD Signal Line'].iloc[i]=None
 
+        #Calculating indicator information and normalizing
+        macd_and_signal_line['difference'] = macd_and_signal_line['MACD'] - macd_and_signal_line['MACD Signal Line']
+        macd_and_signal_line['Normalized difference'] = 1 - normalize_values(normalize_values(macd_and_signal_line['difference'], -1, 1).abs(), 0, 1)
+        macd_and_signal_line['Normalized MACD'] = normalize_values(normalize_values(macd_and_signal_line['MACD'], -1, 1).abs(), 0, 1)
+        
+        
+        
         self.macd_and_signal_line = macd_and_signal_line
         self._zero_dataframe()
         return macd_and_signal_line
