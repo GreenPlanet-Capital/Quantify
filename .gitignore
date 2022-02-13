@@ -3,3 +3,4 @@ DataManager/
 env/
 */__pycache__/*
 *.csv
+.vscode/

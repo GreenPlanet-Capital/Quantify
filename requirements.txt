@@ -1,3 +1,4 @@
 -r DataManager/requirements.txt
 matplotlib
 tqdm
+prettytable
