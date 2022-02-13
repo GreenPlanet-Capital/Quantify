@@ -46,7 +46,7 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime):
     list_of_final_symbols = this_manager.list_of_symbols
 
 def main():
-    setup_data(start_timestamp='2021-06-01 00:00:00', end_timestamp='2021-12-08 00:00:00')
+    setup_data(start_timestamp=datetime(2021, 6, 1), end_timestamp=datetime(2021, 12, 8))
     print("Running Strategies:\n")
     strat: BaseStrategy = strat_id_to_class[0]
     strat.set_data(list_of_tickers=list_of_final_symbols, dict_of_dataframes=dict_of_dfs)
