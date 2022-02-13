@@ -25,14 +25,16 @@ class BollingerBands(BaseIndicator):
         # Add to df
         boll_bands['upper_bb'] = upper_bands
         boll_bands['lower_bb'] = lower_bands
-        boll_bands['diff_bb'] = 1 - normalize_values(upper_bands - lower_bands, 0, 1)
+
+        lookback_bb = 2 * self.num_periods
+        boll_bands['diff_bb'] = 1 - normalize_values(upper_bands[-lookback_bb:] - lower_bands[-lookback_bb:], 0, 1)
         boll_bands['sma'] = simple_moving_avg
 
         self.boll_bands = boll_bands
         self._zero_dataframe()
         return boll_bands
 
-    def graph(self, close_price_df: DataFrame):
+    def graph(self):
         self._dataframe['close'].plot(label='Close prices', color='skyblue')
         self.boll_bands['upper_bb'].plot(label='Upper BB', linestyle='--', linewidth=1, color='black')
         self.boll_bands['sma'].plot(label='Middle BB', linestyle='--', linewidth=1.2, color='grey')
