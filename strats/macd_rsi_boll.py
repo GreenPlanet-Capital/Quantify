@@ -12,7 +12,6 @@ from indicators.bollinger_bands import BollingerBands
 from positions.opportunity import Opportunity
 from strats.base_strategy import BaseStrategy
 import matplotlib.pyplot as plt
-import matplotlib
 import pandas_market_calendars as mcal
 
 
@@ -150,11 +149,10 @@ class Macd_Rsi_Boll(BaseStrategy):
         df_after_opp = df_all_scores[df_all_scores['timestamp'] >
                                      TimeHandler.get_string_from_timestamp(transaction_date)]
 
-        # 15-20%
-        pl = df_after_opp.plot(x='timestamp', y='Score', style='o')
-        matplotlib.use('Qt5Agg')
-        plt.show()
-
+        # 15-20% stop order
+        pd.options.plotting.backend = "plotly"
+        fig = df_after_opp.plot(x='timestamp', y='Score')
+        fig.show()
 
     def multiple_health_check(self, list_opps):
         for opp in list_opps:
