@@ -39,7 +39,6 @@ class Macd_Rsi_Boll(BaseStrategy):
             self.rsi.set_dataframe(self.dict_of_dataframes[ticker])
             self.macd.set_dataframe(self.dict_of_dataframes[ticker])
             self.boll.set_dataframe(self.dict_of_dataframes[ticker])
-
             ticker_to_score_df[ticker] = self._score()
 
         print()
