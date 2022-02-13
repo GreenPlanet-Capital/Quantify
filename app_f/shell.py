@@ -68,6 +68,8 @@ class MyPrompt(Cmd):
             sid = int(args)
             self.CUSTOM_PROMPT_NEEDED = True
             self.CUSTOM_PROMPT_MSG = 'set '
+            self.postcmd(False, None)
+            print('backhere')
         else:
             s_name = args
         
@@ -112,7 +114,7 @@ class MyPrompt(Cmd):
             self.prompt = '(q)> ' + self.CUSTOM_PROMPT_MSG
         else:
             self.prompt = '(q)> '
-        return super().postcmd(stop, line)
+        return super(MyPrompt, self).postcmd(stop, line)
 
     def precmd(self, line: str) -> str:
         if self.CUSTOM_PROMPT_NEEDED:
