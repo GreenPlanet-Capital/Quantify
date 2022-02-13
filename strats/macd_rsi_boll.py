@@ -35,6 +35,7 @@ class Macd_Rsi_Boll(BaseStrategy):
             #     continue
             self.rsi.set_dataframe(self.dict_of_dataframes[ticker])
             self.macd.set_dataframe(self.dict_of_dataframes[ticker])
+            self.boll.set_dataframe(self.dict_of_dataframes[ticker])
             
             ticker_to_score_df[ticker] = self._score()
 
@@ -115,9 +116,9 @@ class Macd_Rsi_Boll(BaseStrategy):
         #     indicators_df.at[i,'Buy/Sell Signal'] = signal
 
         # Calculate score
-        indicators_df['Score'] = 0.2*indicators_df['Shifted RSI']/100 + \
-                                0.25*indicators_df['Normalized difference'] + 0.10*indicators_df['Normalized MACD'] + \
-                                0.45*indicators_df['diff_bb']
+        indicators_df['Score'] = 0.3*indicators_df['Shifted RSI']/100 + \
+                                0.3*indicators_df['Normalized difference'] + 0.10*indicators_df['Normalized MACD'] + \
+                                0.3*indicators_df['diff_bb']
         
         # pd.set_option("display.max_rows", None, "display.max_columns", None)
         # print(indicators_df[['Score', 'Buy/Sell Signal']])

@@ -37,7 +37,7 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime):
 
     # Now import DataManager
     from DataManager.datamgr import data_manager
-    this_manager = data_manager.DataManager(limit=None, update_before=False, exchangeName = 'NYSE', isDelisted=False)
+    this_manager = data_manager.DataManager(limit=10, update_before=False, exchangeName = 'NYSE', isDelisted=False)
     start_timestamp = TimeHandler.get_string_from_datetime(start_timestamp)
     end_timestamp = TimeHandler.get_string_from_datetime(end_timestamp)
     dict_of_dfs = this_manager.get_stock_data(start_timestamp, 
@@ -48,7 +48,7 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime):
 def main():
     setup_data(start_timestamp=datetime(2021, 6, 1), end_timestamp=datetime(2021, 12, 8))
     print("Running Strategies:\n")
-    strat: BaseStrategy = strat_id_to_class[0]
+    strat: BaseStrategy = strat_id_to_class[1]
     strat.set_data(list_of_tickers=list_of_final_symbols, dict_of_dataframes=dict_of_dfs)
     opps: List[Opportunity] = strat.run()
     print()
