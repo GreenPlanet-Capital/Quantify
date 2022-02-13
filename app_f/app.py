@@ -37,7 +37,7 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime):
 
     # Now import DataManager
     from DataManager.datamgr import data_manager
-    this_manager = data_manager.DataManager(limit=10, update_before=False, exchangeName = 'NYSE', isDelisted=False)
+    this_manager = data_manager.DataManager(limit=None, update_before=False, exchangeName = 'NYSE', isDelisted=False)
     start_timestamp = TimeHandler.get_string_from_datetime(start_timestamp)
     end_timestamp = TimeHandler.get_string_from_datetime(end_timestamp)
     dict_of_dfs = this_manager.get_stock_data(start_timestamp, 

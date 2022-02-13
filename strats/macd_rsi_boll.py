@@ -8,14 +8,16 @@ from constants.timeframe import TimeFrame
 from constants.utils import normalize_values
 from indicators.macd import Macd
 from indicators.rsi import Rsi
+from indicators.bollinger_bands import BollingerBands
 from positions.opportunity import Opportunity
 from strats.base_strategy import BaseStrategy
 
-class Macd_Rsi(BaseStrategy):
+class Macd_Rsi_Boll(BaseStrategy):
     def __init__(self, sid, name, timeframe: TimeFrame, lookback) -> None:
         super().__init__(sid, name, timeframe, lookback)
         self.rsi = Rsi()
         self.macd = Macd(lower_ma=12, upper_ma=26, signal_length=9)
+        self.boll = BollingerBands(num_periods=20)
     
     def run(self) -> List[Opportunity]:
         """
@@ -78,7 +80,9 @@ class Macd_Rsi(BaseStrategy):
     def _score(self) -> pd.Series:
         rsi: pd.DataFrame = self.rsi.run()
         macd: pd.DataFrame = self.macd.run()
-        indicators_df = pd.concat([rsi, macd], axis=1)
+        boll: pd.DataFrame = self.boll.run()
+
+        indicators_df = pd.concat([rsi, macd, boll], axis=1)
         
         # Shifting RSI down by one
         indicators_df['Shifted RSI'] = indicators_df['rsi'].shift(1)
@@ -111,8 +115,9 @@ class Macd_Rsi(BaseStrategy):
         #     indicators_df.at[i,'Buy/Sell Signal'] = signal
 
         # Calculate score
-        indicators_df['Score'] = 0.3*indicators_df['Shifted RSI']/100 + \
-                                0.35*indicators_df['Normalized difference'] + 0.35*indicators_df['Normalized MACD']
+        indicators_df['Score'] = 0.2*indicators_df['Shifted RSI']/100 + \
+                                0.25*indicators_df['Normalized difference'] + 0.10*indicators_df['Normalized MACD'] + \
+                                0.45*indicators_df['diff_bb']
         
         # pd.set_option("display.max_rows", None, "display.max_columns", None)
         # print(indicators_df[['Score', 'Buy/Sell Signal']])
