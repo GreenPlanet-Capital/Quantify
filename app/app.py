@@ -32,7 +32,7 @@ def setup_data():
     from DataManager.datamgr import data_manager
     this_manager = data_manager.DataManager(limit=10, update_before=False, exchangeName = 'NYSE', isDelisted=False)
     dict_of_dfs = this_manager.get_stock_data('2021-06-01 00:00:00', 
-                                            '2022-02-11 00:00:00',
+                                            '2021-12-08 00:00:00',
                                             api='Alpaca')
     list_of_final_symbols = this_manager.list_of_symbols
 

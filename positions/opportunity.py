@@ -2,7 +2,7 @@ from datetime import datetime
 
 
 class Opportunity:
-    def __init__(self, strategy_id, timestamp: datetime, ticker, order_type, default_price, metadata: dict()) -> None:
+    def __init__(self, *, strategy_id, timestamp: datetime, ticker, order_type, default_price, metadata: dict()) -> None:
         self.strategy_id = strategy_id
         self.timestamp = timestamp
         self.ticker = ticker
