@@ -1,5 +1,6 @@
 import copy
 import os, sys
+from sqlite3 import complete_statement
 sys.path.append(os.getcwd())
 from constants.quant_cmd import Cmd
 from app_f import app
@@ -11,7 +12,8 @@ TODAY = datetime.now()
 TODAY = datetime(TODAY.year, TODAY.month, TODAY.day)
 
 class MyPrompt(Cmd):
-    __hiden_methods = ('do_EOF', 'do_set', )
+    __hiden_methods = ('do_EOF', 'do_set', 'do_exchangeName', 'do_timestamps',
+                        'do_limit')
     SHOW_COMMANDS = ['strats', ]
     SET_DATA = {
         'timestamps': {
@@ -28,6 +30,7 @@ class MyPrompt(Cmd):
     STRAT_NAMES = list(app.strat_name_to_id.keys())
     STRAT_IDS_AND_NAMES = STRAT_IDS + STRAT_NAMES
     TIMESTAMP_COMPLETIONS = ['start_timestamp', 'end_timestamp']
+    EXCHANGE_NAMES = ['NYSE', 'NASDAQ', 'OTC', 'ARCA', 'AMEX', 'BATS']
 
     CUSTOM_PROMPT_NEEDED = False
     CUSTOM_PROMPT_MSG = ''
@@ -47,17 +50,9 @@ class MyPrompt(Cmd):
             x.add_rows(list(app.strat_id_to_name.items()))
             print(x.get_string(sortby='SID'))
             return
-        
 
     def complete_show(self, text, line, begidx, endidx):
-        if not text:
-            completions = self.SHOW_COMMANDS[:]
-        else:
-            completions = [ f
-                            for f in self.SHOW_COMMANDS
-                            if f.startswith(text)
-                            ]
-        return completions
+        return self.completions_list(text, self.SHOW_COMMANDS)
 
     def do_run(self, args):
         if not args:
@@ -73,7 +68,7 @@ class MyPrompt(Cmd):
         else:
             sid = app.strat_name_to_id(args)
         self.run_subcommand('set')
-        # run the strat
+        #TODO run the strat
 
     def complete_run(self, text, line, begidx, endidx):
         if not text:
@@ -112,10 +107,13 @@ class MyPrompt(Cmd):
         if TIMESTAMPS:
             self.run_subcommand('timestamps')
         if EXCHANGE_NAME_FLAG:
+            print('exchangeName', self.SET_DATA['exchangeName'])
             self.run_subcommand('exchangeName')
         if LIMIT_FLAG:
+            print('limit', self.SET_DATA['limit'])
             self.run_subcommand('limit')
         if UPDATE_BEFORE:
+            print('update_before', self.SET_DATA['update_before'])
             self.run_subcommand('update_before')
 
         print('FLAGS CHOSEN:')
@@ -134,14 +132,7 @@ class MyPrompt(Cmd):
         print(x.get_string())
 
     def complete_set(self, text, line, begidx, endidx):
-        if not text:
-            completions = self.SET_COMPLETES[:]
-        else:
-            completions = [ f
-                            for f in self.SET_COMPLETES
-                            if f.startswith(text)
-                            ]
-        return completions
+        return self.completions_list(text, self.SET_COMPLETES)
 
     def do_timestamps(self, args):
         args_flags = args.split()
@@ -183,20 +174,49 @@ class MyPrompt(Cmd):
                     break
                 except:
                     print('INVALID FORMAT: Enter date(yyyy-mm-dd)')
-
+        print()
         timestamps_dict['CURRENT_START_TIMESTAMP'] = start_datetime
         timestamps_dict['CURRENT_END_TIMESTAMP'] = end_datetime
-        
-
-
-
 
     def complete_timestamps(self, text, line, begidx, endidx):
         return self.completions_list(text, self.TIMESTAMP_COMPLETIONS)
 
+    def do_exchangeName(self, args):
+        if args == '':
+            return
+        if args in self.EXCHANGE_NAMES:
+            self.SET_DATA['exchangeName'] = args
+        else:
+            print('Invalid exchange name')
+            return self.run_subcommand('exchangeName')
+
+    def complete_exchangeName(self, text, line, begidx, endidx):
+        return self.completions_list(text, self.EXCHANGE_NAMES)
+
+    def do_limit(self, args):
+        if args == '':
+            return
+        if args == 'None':
+            self.SET_DATA['limit'] = None
+        if args.isdigit():
+            self.SET_DATA['limit'] = int(args)
+        else:
+            print('Argument must be a digit')
+            return self.run_subcommand('limit')
+
+    def do_update_before(self, args):
+        if args == '':
+            return
+        if args == 'None':
+            self.SET_DATA['limit'] = None
+        if args.isdigit():
+            self.SET_DATA['limit'] = int(args)
+        else:
+            print('Argument must be a digit')
+            return self.run_subcommand('limit')
     def completions_list(self, text, list_of_completions):
         if not text:
-                    completions = list_of_completions
+            completions = list_of_completions
         else:
             completions = [ f
                             for f in list_of_completions
@@ -255,7 +275,21 @@ class MyPrompt(Cmd):
         self.postcmd(False, None)
         self.hax()
 
+    def cmdloop(self, intro=None):
+        print(self.intro)
+        while True:
+            try:
+                super().cmdloop(intro="")
+                break
+            except KeyboardInterrupt:
+                print("^C")
+                self.CUSTOM_PROMPT_NEEDED = False
+                self.lastcmd = None
+                self.postcmd(False, None)
+
+
 if __name__ == '__main__':
     prompt = MyPrompt()
     prompt.prompt = '(q)> '
-    prompt.cmdloop('Quantify 0.0.0\n')
+    prompt.intro = 'Quantify 0.0.0\n'
+    prompt.cmdloop(intro=None)
