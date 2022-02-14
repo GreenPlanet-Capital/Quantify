@@ -45,7 +45,7 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime):
 
     # Now import DataManager
     from DataManager.datamgr import data_manager
-    this_manager = data_manager.DataManager(limit=7, update_before=False, exchangeName='NYSE', isDelisted=False)
+    this_manager = data_manager.DataManager(limit=500, update_before=False, exchangeName='NYSE', isDelisted=False)
     start_timestamp = TimeHandler.get_string_from_datetime(start_timestamp)
     end_timestamp = TimeHandler.get_string_from_datetime(end_timestamp)
     dict_of_dfs = this_manager.get_stock_data(start_timestamp,
@@ -96,7 +96,7 @@ def forward_tester():
 
         for ticker, tuple_df_pos in dict_score_dfs.items():
             score_df, this_pos = tuple_df_pos
-            if score_df['exit_signal'].iloc[-1] and this_pos.is_active:
+            if not score_df.empty and score_df['exit_signal'].iloc[-1] and this_pos.is_active:
                 this_pos.is_active = False
                 current_df = current_dict_dfs[ticker].iloc[-1]
                 exit_timestamp, exit_price = TimeHandler.get_datetime_from_string(current_df['timestamp']), \
@@ -122,7 +122,8 @@ def forward_tester():
 
     for ticker, tuple_df_pos in dict_score_dfs.items():
         score_df, this_pos = tuple_df_pos
-        to_graph = pd.concat([score_df, dict_of_dfs[ticker][['close']][min_start_index - 1:]], axis=1)
+        to_graph = pd.concat([dict_of_dfs[ticker][['close', 'timestamp']][min_start_index - 1:], score_df[['Score']]],
+                             axis=1)
 
         list_dates = [this_pos.timestamp, this_pos.exit_timestamp]
         list_dates = list(map(TimeHandler.get_string_from_datetime, list_dates))

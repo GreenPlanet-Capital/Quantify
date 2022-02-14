@@ -5,9 +5,10 @@ from constants.utils import normalize_values
 
 
 class BollingerBands(BaseIndicator):
-    def __init__(self, num_periods) -> None:
+    def __init__(self, num_periods, lookback_bb) -> None:
         super().__init__()
         self.num_periods = num_periods
+        self.lookback_bb = lookback_bb
 
     def run(self):
         super().run()
@@ -26,8 +27,8 @@ class BollingerBands(BaseIndicator):
         boll_bands['upper_bb'] = upper_bands
         boll_bands['lower_bb'] = lower_bands
 
-        lookback_bb = 2 * self.num_periods
-        boll_bands['diff_bb'] = 1 - normalize_values(upper_bands[-lookback_bb:] - lower_bands[-lookback_bb:], 0, 1)
+        boll_bands['diff_bb'] = 1 - normalize_values(upper_bands[-self.lookback_bb:] -
+                                                     lower_bands[-self.lookback_bb:], 0, 1)
         boll_bands['sma'] = simple_moving_avg
 
         self.boll_bands = boll_bands

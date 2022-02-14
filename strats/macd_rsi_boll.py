@@ -23,7 +23,7 @@ class Macd_Rsi_Boll(BaseStrategy):
         super().__init__(sid, name, timeframe, lookback)
         self.rsi = Rsi()
         self.macd = Macd(lower_ma=12, upper_ma=26, signal_length=9)
-        self.boll = BollingerBands(num_periods=20)
+        self.boll = BollingerBands(num_periods=20, lookback_bb=lookback)
 
     def run(self) -> List[Opportunity]:
         """
@@ -148,8 +148,8 @@ class Macd_Rsi_Boll(BaseStrategy):
 
         df_all_scores = self._score()
         df_all_scores['Score'] = 1 - df_all_scores['Score']
-        df_after_opp = df_all_scores[df_all_scores['timestamp'] >
-                                     TimeHandler.get_string_from_timestamp(transaction_date)]
+        df_after_opp = df_all_scores[df_all_scores['timestamp'].apply(TimeHandler.get_datetime_from_string) >
+                                     transaction_date]
 
         # Stop Score (20%)
         df_after_opp['highest'] = df_after_opp['Score'].cummax()
