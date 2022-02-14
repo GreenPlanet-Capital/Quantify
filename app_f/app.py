@@ -45,7 +45,7 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime):
 
     # Now import DataManager
     from DataManager.datamgr import data_manager
-    this_manager = data_manager.DataManager(limit=500, update_before=False, exchangeName='NYSE', isDelisted=False)
+    this_manager = data_manager.DataManager(limit=None, update_before=False, exchangeName='NYSE', isDelisted=False)
     start_timestamp = TimeHandler.get_string_from_datetime(start_timestamp)
     end_timestamp = TimeHandler.get_string_from_datetime(end_timestamp)
     dict_of_dfs = this_manager.get_stock_data(start_timestamp,
@@ -128,7 +128,8 @@ def forward_tester():
         list_dates = [this_pos.timestamp, this_pos.exit_timestamp]
         list_dates = list(map(TimeHandler.get_string_from_datetime, list_dates))
 
-        fig = to_graph.plot(x='timestamp', y=[to_graph['Score'] * 10 + to_graph['close'].mean(), to_graph['close']])
+        fig = to_graph.plot(x='timestamp', y=[to_graph['Score'] * 10 + to_graph['close'].mean(), to_graph['close']],
+                            title=f"Stock Ticker: {ticker}")
         list_locs = find_loc(to_graph, list_dates)
 
         fig.add_annotation(x=to_graph.loc[list_locs[0]]['timestamp'].iloc[0],

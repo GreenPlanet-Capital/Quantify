@@ -36,9 +36,9 @@ class Macd_Rsi_Boll(BaseStrategy):
 
         for ticker in tqdm(self.list_of_tickers, desc=f"{self.sid}: {self.name} "):
             # FIXME: An arbitary price of 80 was chosen here
-            # if self.dict_of_dataframes[ticker]['close'].mean() < 80:
-            #     ticker_to_score_df[ticker] = pd.DataFrame([[0, 0]], columns = ['Score', 'Buy/Sell Signal'])
-            #     continue
+            if self.dict_of_dataframes[ticker]['close'].mean() < 80:
+                ticker_to_score_df[ticker] = pd.DataFrame([[0, 0]], columns = ['Score', 'Buy/Sell Signal'])
+                continue
             self.rsi.set_dataframe(self.dict_of_dataframes[ticker])
             self.macd.set_dataframe(self.dict_of_dataframes[ticker])
             self.boll.set_dataframe(self.dict_of_dataframes[ticker])
