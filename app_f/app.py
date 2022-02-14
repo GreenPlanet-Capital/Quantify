@@ -154,9 +154,21 @@ def find_loc(df, dates):
         marks.append(df.index[df['timestamp'] == date])
     return marks
 
+def live_tester():
+    setup_data(start_timestamp=datetime(2021, 6, 1), end_timestamp=datetime(2022, 2, 13))
+    print("Running Strategies:\n")
+    strat: BaseStrategy = strat_id_to_class[1]
+    strat.set_data(list_of_tickers=list_of_final_symbols,
+                   dict_of_dataframes={key: dict_of_dfs[key][:-30] for key in dict_of_dfs.keys()})
+    opps: List[Opportunity] = strat.run()
+    n_top = 5
+    for pos in opps[:n_top]:
+        print(pos)
+
 def main():
     print("Running Forward Tester:\n")
-    forward_tester()
+    # forward_tester()
+    live_tester()
     print()
 
 
