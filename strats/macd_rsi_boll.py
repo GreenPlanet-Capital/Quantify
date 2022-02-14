@@ -50,10 +50,8 @@ class Macd_Rsi_Boll(BaseStrategy):
         opportunity_list = []
         for ticker, df in ticker_to_score_df.items():
             strat_id = self.sid
-            timestamp = TimeHandler.get_datetime_from_alpaca_string(
-                TimeHandler.get_alpaca_string_from_string(
+            timestamp = TimeHandler.get_datetime_from_string(
                     self.dict_of_dataframes[ticker]['timestamp'].iloc[-1]
-                )
             )
             order_type = df['Buy/Sell Signal'].iloc[-1]
             default_price = self.dict_of_dataframes[ticker]['close'].iloc[-1]
@@ -152,11 +150,6 @@ class Macd_Rsi_Boll(BaseStrategy):
         df_all_scores['Score'] = 1 - df_all_scores['Score']
         df_after_opp = df_all_scores[df_all_scores['timestamp'] >
                                      TimeHandler.get_string_from_timestamp(transaction_date)]
-
-        # Plot order graph
-        # pd.options.plotting.backend = "plotly"
-        # fig = df_after_opp.plot(x='timestamp', y='Score')
-        # fig.show()
 
         # Stop Score (20%)
         df_after_opp['highest'] = df_after_opp['Score'].cummax()

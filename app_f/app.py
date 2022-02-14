@@ -1,5 +1,9 @@
 import os, sys
 
+import pandas as pd
+
+pd.options.plotting.backend = "plotly"
+
 sys.path.append(os.getcwd())
 from DataManager.utils.timehandler import TimeHandler
 from typing import List
@@ -104,9 +108,49 @@ def forward_tester():
     print('-' * 50)
     print('Ended Trading Period. Below are current positions')
 
-    for pos in positions[:num_top]:
+    for pos in positions:
+        if pos.is_active:
+            pos.is_active = False
+            current_df = current_dict_dfs[pos.ticker].iloc[-1]
+            exit_timestamp, exit_price = TimeHandler.get_datetime_from_string(current_df['timestamp']), \
+                                         current_df['close']
+
+            pos.exit_timestamp = exit_timestamp
+            pos.exit_price = exit_price
+
         print(pos)
 
+    for ticker, tuple_df_pos in dict_score_dfs.items():
+        score_df, this_pos = tuple_df_pos
+        to_graph = pd.concat([score_df, dict_of_dfs[ticker][['close']][min_start_index - 1:]], axis=1)
+
+        list_dates = [this_pos.timestamp, this_pos.exit_timestamp]
+        list_dates = list(map(TimeHandler.get_string_from_datetime, list_dates))
+
+        fig = to_graph.plot(x='timestamp', y=[to_graph['Score'] * 10 + to_graph['close'].mean(), to_graph['close']])
+        list_locs = find_loc(to_graph, list_dates)
+
+        fig.add_annotation(x=to_graph.loc[list_locs[0]]['timestamp'].iloc[0],
+                           y=to_graph.loc[list_locs[0]]['close'].iloc[0],
+                           text=f"Enter date (type: {this_pos.order_type})",
+                           showarrow=True,
+                           arrowhead=1)
+
+        fig.add_annotation(x=to_graph.loc[list_locs[1]]['timestamp'].iloc[0],
+                           y=to_graph.loc[list_locs[1]]['close'].iloc[0],
+                           text=f"Exit date (type: {this_pos.order_type})",
+                           showarrow=True,
+                           arrowhead=1)
+
+        fig.update_layout(showlegend=False)
+        fig.show()
+
+
+def find_loc(df, dates):
+    marks = []
+    for date in dates:
+        marks.append(df.index[df['timestamp'] == date])
+    return marks
 
 def main():
     print("Running Forward Tester:\n")
