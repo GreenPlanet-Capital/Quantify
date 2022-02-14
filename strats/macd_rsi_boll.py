@@ -1,8 +1,10 @@
 from datetime import datetime
+from pprint import pprint
 from typing import Dict, List, AnyStr
 from xml.sax import default_parser_list
 from tqdm import tqdm
 import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'
 from DataManager.utils.timehandler import TimeHandler
 from constants.timeframe import TimeFrame
 from constants.utils import normalize_values
@@ -10,6 +12,7 @@ from indicators.macd import Macd
 from indicators.rsi import Rsi
 from indicators.bollinger_bands import BollingerBands
 from positions.opportunity import Opportunity
+from positions.position import Position
 from strats.base_strategy import BaseStrategy
 import matplotlib.pyplot as plt
 import pandas_market_calendars as mcal
@@ -70,7 +73,7 @@ class Macd_Rsi_Boll(BaseStrategy):
         score_df = pd.DataFrame(opportunity_list)
 
         score_df.sort_values(by='score', ascending=False, inplace=True)
-        print(score_df)
+        # print(score_df)
         score_df.to_csv('results.csv')
 
         opportunities = []
@@ -78,6 +81,8 @@ class Macd_Rsi_Boll(BaseStrategy):
             opportunities.append(self._generate_opportunity(dictionary))
 
         self._zero_data()
+        opportunities.sort(key=lambda d: d.metadata['score'], reverse=True)
+
         return opportunities
 
     def _score(self) -> pd.Series:
@@ -148,12 +153,21 @@ class Macd_Rsi_Boll(BaseStrategy):
         df_after_opp = df_all_scores[df_all_scores['timestamp'] >
                                      TimeHandler.get_string_from_timestamp(transaction_date)]
 
-        # 15-20% stop order
-        pd.options.plotting.backend = "plotly"
-        fig = df_after_opp.plot(x='timestamp', y='Score')
-        fig.show()
+        # Plot order graph
+        # pd.options.plotting.backend = "plotly"
+        # fig = df_after_opp.plot(x='timestamp', y='Score')
+        # fig.show()
 
-    def multiple_health_check(self, list_opps):
-        for opp in list_opps:
-            self.health_check(opp)
+        # Stop Score (20%)
+        df_after_opp['highest'] = df_after_opp['Score'].cummax()
+        df_after_opp['trailing_stop'] = df_after_opp['highest'] * (1 - 0.20)
+        df_after_opp['exit_signal'] = df_after_opp['Score'] < df_after_opp['trailing_stop']
+
+        return df_after_opp
+
+    def multiple_health_check(self, list_pos: List[Position]):
+        dict_dfs = dict()
+        for pos in list_pos:
+            dict_dfs[pos.ticker] = (self.health_check(pos), pos)
         self._zero_data()
+        return dict_dfs

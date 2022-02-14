@@ -2,3 +2,4 @@
 matplotlib
 tqdm
 prettytable
+plotly
