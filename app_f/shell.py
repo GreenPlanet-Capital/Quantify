@@ -215,6 +215,12 @@ class MyPrompt(Cmd):
             msg += 'STRATEGY: Strategy Not Set\n'
             INTEGRITY = False
 
+        if self.SET_DATA['strat']:
+            #TODO Check if the timeframe that is set is enough for the strratgy
+            # set
+            # Allow user to reenter start_timestamp with a suggestion
+            pass
+
         if not INTEGRITY:
             msg = 'SET ERROR(s): Run the set command again to resolve integrity issues\n' + msg
 

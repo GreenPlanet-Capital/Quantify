@@ -8,6 +8,7 @@ class Opportunity:
         self.strategy_id = strategy_id
         self.timestamp = timestamp
         self.ticker = ticker
+        self.tv_link = self._generate_tv_link()
         self.order_type = order_type
         self.default_price = default_price
         self.metadata: dict() = metadata
@@ -17,10 +18,15 @@ class Opportunity:
             ('strategy_id', self.strategy_id),
             ('timestamp', self.timestamp),
             ('ticker', self.ticker),
+            ('tv_link', self.tv_link),
             ('order_type', self.order_type),
             ('default_price', self.default_price),
             ('metadata', pprint.pformat(self.metadata))
         ]
+
+    def _generate_tv_link(self):
+        #TODO Generate a link to trading view for the ticker
+        return ''
 
     def __repr__(self):
         x = PrettyTable()
