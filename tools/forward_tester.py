@@ -6,12 +6,13 @@ from positions.position import Position
 from strats.base_strategy import BaseStrategy
 
 
-def forward_tester(list_of_final_symbols, dict_of_dfs, strat: BaseStrategy):
+def forward_tester(list_of_final_symbols, dict_of_dfs, exchangeName, strat: BaseStrategy):
     min_start_index = strat.timeframe.length
     num_top = 5
 
     strat.set_data(list_of_tickers=list_of_final_symbols,
-                   dict_of_dataframes={k: v[:min_start_index] for k, v in dict_of_dfs.items()})
+                   dict_of_dataframes={k: v[:min_start_index] for k, v in dict_of_dfs.items()},
+                   exchangeName=exchangeName)
     positions: List[Position] = [Position(op) for op in strat.run()[:num_top]]
 
     print('-' * 50)

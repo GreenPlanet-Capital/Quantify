@@ -40,13 +40,13 @@ list_of_final_symbols = []
 setup_datamgr_settings()
 
 
-def setup_data(start_timestamp: datetime, end_timestamp: datetime):
+def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchangeName, update_before):
     global dict_of_dfs
     global list_of_final_symbols
 
     # Now import DataManager
     from DataManager.datamgr import data_manager
-    this_manager = data_manager.DataManager(limit=None, update_before=False, exchangeName='NYSE', isDelisted=False)
+    this_manager = data_manager.DataManager(limit=limit, update_before=update_before, exchangeName=exchangeName, isDelisted=False)
     start_timestamp = TimeHandler.get_string_from_datetime(start_timestamp)
     end_timestamp = TimeHandler.get_string_from_datetime(end_timestamp)
     dict_of_dfs = this_manager.get_stock_data(start_timestamp,
@@ -69,11 +69,16 @@ Do this for n end timestamps
 def main():
     print("Running Forward Tester:\n")
     # Fetch data for entire test frame & manage slices
-    setup_data(start_timestamp=datetime(2021, 6, 1), end_timestamp=datetime(2022, 2, 14))
+    start_timestamp=datetime(2021, 6, 1)
+    end_timestamp=datetime(2022, 2, 14)
+    exchangeName = 'NYSE'
+    limit = None
+    update_before = False
+    setup_data(start_timestamp=start_timestamp, end_timestamp=end_timestamp,
+                limit=limit, exchangeName=exchangeName, update_before=update_before)
     strat: BaseStrategy = strat_id_to_class[1]  # Set strategy here
-    live_tester(list_of_final_symbols, dict_of_dfs, strat)
+    live_tester(list_of_final_symbols, dict_of_dfs, exchangeName, strat)
     print()
-
 
 if __name__ == '__main__':
     main()

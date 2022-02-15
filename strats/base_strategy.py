@@ -13,7 +13,7 @@ class BaseStrategy:
         self.timeframe = timeframe
         self.lookback = lookback
     
-    def set_data(self, list_of_tickers: list(), dict_of_dataframes: dict()):
+    def set_data(self, list_of_tickers: list(), dict_of_dataframes: dict(), exchangeName: str):
         lengths = [len(df) for df in dict_of_dataframes.values()]
         max_rows = max(lengths)
         min_rows = min(lengths)
@@ -22,6 +22,7 @@ class BaseStrategy:
         
         self.list_of_tickers = list_of_tickers
         self.dict_of_dataframes = dict_of_dataframes
+        self.exchangeName = exchangeName
 
     def _zero_data(self):
         self.list_of_tickers = None

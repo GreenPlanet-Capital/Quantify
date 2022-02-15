@@ -44,7 +44,6 @@ class Macd_Rsi(BaseStrategy):
                     self.dict_of_dataframes[ticker]['timestamp'].iloc[-1]\
                     )
             )
-            exchangeName = ''
             order_type = df['Buy/Sell Signal'].iloc[-1]
             default_price = self.dict_of_dataframes[ticker]['close'].iloc[-1]
             score = df['Score'].iloc[-1]
@@ -54,7 +53,7 @@ class Macd_Rsi(BaseStrategy):
                     'strategy_id': strat_id, 
                     'timestamp': timestamp, 
                     'ticker': ticker, 
-                    'exchangeName': exchangeName,
+                    'exchangeName': self.exchangeName,
                     'order_type': order_type, 
                     'default_price': default_price, 
                     'score': score
