@@ -1,10 +1,17 @@
 import copy
-from email.policy import default
+from itertools import zip_longest
 import os, sys
 sys.path.append(os.getcwd())
+from typing import List
+from positions.opportunity import Opportunity
+from positions.position import Position
 from strats.base_strategy import BaseStrategy
+from constants.datamanager_settings import setup_datamgr_settings
+setup_datamgr_settings()
+from DataManager.datamgr.data_manager import DataManager
 from constants.quant_cmd import Cmd
 from app_f import app
+import datetime as dt
 from datetime import datetime
 from DataManager.utils.timehandler import TimeHandler
 from prettytable import PrettyTable, SINGLE_BORDER
@@ -16,7 +23,7 @@ class MyPrompt(Cmd):
     __hiden_methods = ('do_EOF', 'do_exchangeName', 'do_timestamps',
                         'do_limit', 'do_update_before', 'do_forward_test',
                         'do_live_test', 'do_strat')
-    SHOW_COMMANDS = ['strats', 'set_data']
+    SHOW_COMMANDS = ['strats', 'set_data', 'results', 'tracked']
     RUN_COMPLETES = ['live_test', 'forward_test']
     SET_DATA = {
         'timestamps': {
@@ -35,7 +42,8 @@ class MyPrompt(Cmd):
     STRAT_IDS_AND_NAMES = STRAT_IDS + STRAT_NAMES
     TIMESTAMP_COMPLETIONS = ['start_timestamp', 'end_timestamp']
     EXCHANGE_NAMES = ['NYSE', 'NASDAQ', 'OTC', 'ARCA', 'AMEX', 'BATS']
-    
+    RESULTS: List[Opportunity] = []
+    TRACKED: List[Position] = [] # TODO populate this from disk
     CUSTOM_PROMPT_NEEDED = False
     CUSTOM_PROMPT_MSG = ''
 
@@ -50,12 +58,21 @@ class MyPrompt(Cmd):
         if args == self.SHOW_COMMANDS[0]: #strats
             x = PrettyTable()
             x.set_style(SINGLE_BORDER)
-            x.field_names = ['SID', 'Name']
-            x.add_rows(list(app.strat_id_to_name.items()))
+            x.field_names = ['SID', 'Name', 'Min Data Needed', 'Unit']
+            x.add_rows(
+                (id, name, app.strat_id_to_class[id].length_of_data_needed, app.strat_id_to_class[id].timeframe.datatype)
+                for id, name in app.strat_id_to_name.items()
+            )
             print(x.get_string(sortby='SID'))
+        
         elif args == self.SHOW_COMMANDS[1]: #set_data
             self.print_set_data()
-        
+
+        elif args == self.SHOW_COMMANDS[2]: #results
+            self.show_results()
+
+        elif args == self.SHOW_COMMANDS[3]: #tracked
+            self.show_tracked()
 
     def complete_show(self, text, line, begidx, endidx):
         return self.completions_list(text, self.SHOW_COMMANDS)
@@ -103,10 +120,27 @@ class MyPrompt(Cmd):
     def complete_live_test(self, text, line, begidx, endidx):
         return self.completions_list(text, ['default'])
 
+    def do_track(self, args):
+        uid = -1
+        if not args and not args.isdigit() and not args.isdigit() < len(self.RESULTS):
+            print('track needs a uid of an opportunity\nuse "show results" to find the uid')
+            return
+        elif args.isdigit():
+            uid = int(args)
+
+        opp: Opportunity = self.RESULTS[uid]
+        position = Position(opp)
+
+        #TODO pickle the position
+
+
     def do_strat(self, args):
         if not args:
-            print (f'Needs a strategy argument')
-            return self.run_subcommand('strat')
+            if not self.SET_DATA['strat']:
+                print (f'Needs a strategy argument')
+                return self.run_subcommand('strat')
+            else:
+                return
         if not args in self.STRAT_IDS_AND_NAMES:
             print (f'{args} is not a valid argument to strat')
             return
@@ -165,11 +199,11 @@ class MyPrompt(Cmd):
             print('strategy', self.SET_DATA['strat'])
             self.run_subcommand('strat')
         
-        self.print_set_data()
-        
         STATUS, msg = self.check_set_integrity()
         if not STATUS:
             print(msg)
+
+        self.print_set_data()
 
     def print_set_data(self):
         print('\nFLAGS CHOSEN:')
@@ -190,6 +224,23 @@ class MyPrompt(Cmd):
     def check_set_integrity(self):
         INTEGRITY = True
         msg = ""
+        if self.SET_DATA['strat']:
+            strat:BaseStrategy = self.SET_DATA['strat']
+            dmgr = DataManager()
+            start_timestamp_string = TimeHandler.get_string_from_datetime(self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'])
+            end_timestamp_string = TimeHandler.get_string_from_datetime(self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'])
+            new_start, new_end, date_range = dmgr.validate_timestamps(start_timestamp_string, end_timestamp_string)
+            self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'], self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'] = TimeHandler.get_datetime_from_string(new_start), TimeHandler.get_datetime_from_string(new_end)
+            if(not (len(date_range) >= strat.length_of_data_needed)):
+                print(f'TIMESTAMPS: start_timestamp was not suffiencient for strategy "{strat.name}"\nNeeds at least {strat.length_of_data_needed} {strat.timeframe.datatype} units')
+                assumed_start = (self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'] - dt.timedelta(int(strat.length_of_data_needed*2))).date()
+                assumed_start_string = TimeHandler.get_string_from_datetime(assumed_start)
+                _, _, date_range = dmgr.validate_timestamps(assumed_start_string, new_end)
+                new_start_timestamp = date_range[-strat.length_of_data_needed]
+                new_start_datetime = TimeHandler.get_datetime_from_timestamp(new_start_timestamp)
+                self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'] = new_start_datetime
+                print(f'WARNING: start_timestamp was changed to {TimeHandler.get_string_from_datetime(new_start_datetime)} to accomodate for strategy')
+        
         if (self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP']\
             == self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP']):
             msg += 'TIMESTAMPS: start_timestamp and end_timestamp is equal\n'
@@ -214,12 +265,6 @@ class MyPrompt(Cmd):
         if not self.SET_DATA['strat']:
             msg += 'STRATEGY: Strategy Not Set\n'
             INTEGRITY = False
-
-        if self.SET_DATA['strat']:
-            #TODO Check if the timeframe that is set is enough for the strratgy
-            # set
-            # Allow user to reenter start_timestamp with a suggestion
-            pass
 
         if not INTEGRITY:
             msg = 'SET ERROR(s): Run the set command again to resolve integrity issues\n' + msg
@@ -313,6 +358,37 @@ class MyPrompt(Cmd):
 
     def complete_update_before(self,text, line, begidx, endidx):
         return self.completions_list(text, ['True', 'False'])
+
+    def show_results(self):
+        if not self.RESULTS:
+            print('No results to show. Run a test.\n')
+        else:
+            out_string_list = []
+            out_string = ''
+            opp: Opportunity
+            for i, opp in enumerate(self.RESULTS):
+                out_string_list.append(opp.get_string(pre_entries=[('uid', i)]))
+            
+            def combine(*strings):
+                str_list = [s for s in strings if s]
+                lines = zip(*(s.splitlines() for s in str_list))
+                return '\n'.join('  '.join(line) for line in lines)
+
+            def n_wise(iterable, n=2):
+                "s -> (s0, s1), (s2, s3), (s4, s5), ..."
+                a = iter(iterable)
+                return zip_longest(*[iter(a)]*n, fillvalue='')
+
+            pairs = n_wise(out_string_list)
+
+            for i, j in pairs:
+                out_string += combine(i, j) + '\n'
+
+            print(out_string)
+
+    def show_tracked(self):
+        #TODO
+        pass
 
     def completions_list(self, text, list_of_completions):
         if not text:

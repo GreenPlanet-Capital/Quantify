@@ -298,7 +298,6 @@ class Cmd:
     def do_help(self, arg):
         'List available commands with "help" or detailed help with "help cmd".'
         if arg:
-            # XXX check arg syntax
             try:
                 func = getattr(self, 'help_' + arg)
             except AttributeError:
