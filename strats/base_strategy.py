@@ -30,3 +30,6 @@ class BaseStrategy:
     def run(self) -> List[Opportunity]:
         assert self.list_of_tickers is not None, "DataNoneError: List of tickers not set for strategy"
         assert self.dict_of_dataframes is not None, "DataNoneError: Dict of Dataframes not set for strategy"
+
+    def __repr__(self) -> str:
+        return self.name

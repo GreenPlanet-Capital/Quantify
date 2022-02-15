@@ -137,6 +137,9 @@ class Cmd:
                     line = input(self.prompt)
                 except EOFError:
                     line = 'EOF'
+                    self.CUSTOM_PROMPT_NEEDED = False
+                    self.lastcmd = None
+                    self.postcmd(False, None)
             else:
                 self.stdout.write(self.prompt)
                 self.stdout.flush()

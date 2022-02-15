@@ -1,7 +1,8 @@
 import copy
+from email.policy import default
 import os, sys
-from sqlite3 import complete_statement
 sys.path.append(os.getcwd())
+from strats.base_strategy import BaseStrategy
 from constants.quant_cmd import Cmd
 from app_f import app
 from datetime import datetime
@@ -13,8 +14,10 @@ TODAY = datetime(TODAY.year, TODAY.month, TODAY.day)
 
 class MyPrompt(Cmd):
     __hiden_methods = ('do_EOF', 'do_exchangeName', 'do_timestamps',
-                        'do_limit', 'do_update_before')
-    SHOW_COMMANDS = ['strats', ]
+                        'do_limit', 'do_update_before', 'do_forward_test',
+                        'do_live_test', 'do_strat')
+    SHOW_COMMANDS = ['strats', 'set_data']
+    RUN_COMPLETES = ['live_test', 'forward_test']
     SET_DATA = {
         'timestamps': {
             'CURRENT_START_TIMESTAMP': TODAY,
@@ -23,15 +26,16 @@ class MyPrompt(Cmd):
         'limit': None,
         'update_before': False,
         'exchangeName': 'NYSE',
+        'strat': None
     }
-    SET_ADDL_FLAGS = ['all', 'end']
+    SET_ADDL_FLAGS = ['all', 'end', ]
     SET_COMPLETES =  list(SET_DATA.keys()) + SET_ADDL_FLAGS
     STRAT_IDS = [str(x) for x in list(app.strat_id_to_name.keys())]
     STRAT_NAMES = list(app.strat_name_to_id.keys())
     STRAT_IDS_AND_NAMES = STRAT_IDS + STRAT_NAMES
     TIMESTAMP_COMPLETIONS = ['start_timestamp', 'end_timestamp']
     EXCHANGE_NAMES = ['NYSE', 'NASDAQ', 'OTC', 'ARCA', 'AMEX', 'BATS']
-
+    
     CUSTOM_PROMPT_NEEDED = False
     CUSTOM_PROMPT_MSG = ''
 
@@ -49,7 +53,9 @@ class MyPrompt(Cmd):
             x.field_names = ['SID', 'Name']
             x.add_rows(list(app.strat_id_to_name.items()))
             print(x.get_string(sortby='SID'))
-            return
+        elif args == self.SHOW_COMMANDS[1]: #set_data
+            self.print_set_data()
+        
 
     def complete_show(self, text, line, begidx, endidx):
         return self.completions_list(text, self.SHOW_COMMANDS)
@@ -58,8 +64,51 @@ class MyPrompt(Cmd):
         if not args:
             print (f'run needs an argument')
             return
-        if not args in self.STRAT_IDS_AND_NAMES:
+        if not args in self.RUN_COMPLETES:
             print (f'{args} is not a valid argument to run')
+            return
+
+        if args=='live_test':
+            self.run_subcommand('live_test')
+        elif args=='forward_test':
+            self.run_subcommand('forward_test')
+
+    def complete_run(self, text, line, begidx, endidx):
+        return self.completions_list(text, self.RUN_COMPLETES)
+
+    def do_forward_test(self, args):
+        pass
+
+    def complete_forward_test(self, text, line, begidx, endidx):
+        return self.completions_list(text, ['default'])
+
+    def do_live_test(self, args):
+        DEFAULT_FLAG = False
+        if args=='default':
+            DEFAULT_FLAG = True
+
+        if not DEFAULT_FLAG:
+            self.run_subcommand('set')
+        
+        STATUS, msg = self.check_set_integrity()
+        if not STATUS:
+            if DEFAULT_FLAG:
+                print()
+                print(msg)
+            print('Cancelling forward_test\n')
+            return
+        
+        # TODO Do the forward test here
+
+    def complete_live_test(self, text, line, begidx, endidx):
+        return self.completions_list(text, ['default'])
+
+    def do_strat(self, args):
+        if not args:
+            print (f'Needs a strategy argument')
+            return self.run_subcommand('strat')
+        if not args in self.STRAT_IDS_AND_NAMES:
+            print (f'{args} is not a valid argument to strat')
             return
 
         sid = -1
@@ -68,24 +117,17 @@ class MyPrompt(Cmd):
         else:
             sid = app.strat_name_to_id[args]
         
-        self.print_set_data()
-        #TODO run the strat
+        self.SET_DATA['strat'] = app.strat_id_to_class[sid]
 
-    def complete_run(self, text, line, begidx, endidx):
-        if not text:
-            completions = self.STRAT_NAMES
-        else:
-            completions = [ f
-                            for f in self.STRAT_NAMES
-                            if f.startswith(text)
-                            ]
-        return completions
+    def complete_strat(self, text, line, begidx, endidx):
+        return self.completions_list(text, self.STRAT_NAMES)
 
     def do_set(self, args):
         TIMESTAMPS = False
         EXCHANGE_NAME_FLAG = False
         LIMIT_FLAG = False
         UPDATE_BEFORE = False
+        STRATEGY = False
 
         args_flag = args.split()
 
@@ -96,6 +138,7 @@ class MyPrompt(Cmd):
             EXCHANGE_NAME_FLAG = True
             LIMIT_FLAG = True
             UPDATE_BEFORE = True
+            STRATEGY = True
         if 'timestamps' in args_flag:
             TIMESTAMPS = True
         if 'exchangeName' in args_flag:
@@ -104,6 +147,8 @@ class MyPrompt(Cmd):
             LIMIT_FLAG = True
         if 'update_before' in args_flag:
             UPDATE_BEFORE = True
+        if 'strat' in args_flag:
+            STRATEGY = True
 
         if TIMESTAMPS:
             self.run_subcommand('timestamps')
@@ -116,11 +161,18 @@ class MyPrompt(Cmd):
         if UPDATE_BEFORE:
             print('update_before', self.SET_DATA['update_before'])
             self.run_subcommand('update_before')
-
+        if STRATEGY:
+            print('strategy', self.SET_DATA['strat'])
+            self.run_subcommand('strat')
+        
         self.print_set_data()
+        
+        STATUS, msg = self.check_set_integrity()
+        if not STATUS:
+            print(msg)
 
     def print_set_data(self):
-        print('FLAGS CHOSEN:')
+        print('\nFLAGS CHOSEN:')
         x = PrettyTable()
         x.set_style(SINGLE_BORDER)
         x.field_names = ['flags', 'value']
@@ -134,6 +186,39 @@ class MyPrompt(Cmd):
         rows.extend(list(flags_dict.items()))
         x.add_rows(rows)
         print(x.get_string())
+
+    def check_set_integrity(self):
+        INTEGRITY = True
+        msg = ""
+        if (self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP']\
+            == self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP']):
+            msg += 'TIMESTAMPS: start_timestamp and end_timestamp is equal\n'
+            INTEGRITY = False
+        
+        if (self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP']\
+            > self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP']):
+            msg += 'TIMESTAMPS: end_timestamp is before start_timestamp\n'
+            INTEGRITY = False
+
+        if (self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'] > TODAY):
+            msg += 'TIMESTAMPS: start_timestamp is in the future\n'
+            INTEGRITY = False
+        if (self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'] > TODAY):
+            msg += 'TIMESTAMPS: end_timestamp is in the future\n'
+            INTEGRITY = False
+
+        if (self.SET_DATA['limit'] is not None and self.SET_DATA['limit'] < 8):
+            msg += 'LIMIT: limit !> 8. limit needs to be None or >=8\n'
+            INTEGRITY = False
+
+        if not self.SET_DATA['strat']:
+            msg += 'STRATEGY: Strategy Not Set\n'
+            INTEGRITY = False
+
+        if not INTEGRITY:
+            msg = 'SET ERROR(s): Run the set command again to resolve integrity issues\n' + msg
+
+        return INTEGRITY, msg
 
     def complete_set(self, text, line, begidx, endidx):
         return self.completions_list(text, self.SET_COMPLETES)
@@ -206,7 +291,7 @@ class MyPrompt(Cmd):
             self.SET_DATA['limit'] = int(args)
         else:
             print(args)
-            print('Argument must be a digit')
+            print('Argument must be a digit or "None"')
             return self.run_subcommand('limit')
 
     def do_update_before(self, args):
