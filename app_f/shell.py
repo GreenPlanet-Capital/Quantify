@@ -12,8 +12,8 @@ TODAY = datetime.now()
 TODAY = datetime(TODAY.year, TODAY.month, TODAY.day)
 
 class MyPrompt(Cmd):
-    __hiden_methods = ('do_EOF', 'do_set', 'do_exchangeName', 'do_timestamps',
-                        'do_limit')
+    __hiden_methods = ('do_EOF', 'do_exchangeName', 'do_timestamps',
+                        'do_limit', 'do_update_before')
     SHOW_COMMANDS = ['strats', ]
     SET_DATA = {
         'timestamps': {
@@ -66,13 +66,14 @@ class MyPrompt(Cmd):
         if args.isdigit():
             sid = int(args)
         else:
-            sid = app.strat_name_to_id(args)
-        self.run_subcommand('set')
+            sid = app.strat_name_to_id[args]
+        
+        self.print_set_data()
         #TODO run the strat
 
     def complete_run(self, text, line, begidx, endidx):
         if not text:
-            completions = self.STRAT_IDS[:]
+            completions = self.STRAT_NAMES
         else:
             completions = [ f
                             for f in self.STRAT_NAMES
@@ -116,6 +117,9 @@ class MyPrompt(Cmd):
             print('update_before', self.SET_DATA['update_before'])
             self.run_subcommand('update_before')
 
+        self.print_set_data()
+
+    def print_set_data(self):
         print('FLAGS CHOSEN:')
         x = PrettyTable()
         x.set_style(SINGLE_BORDER)
@@ -198,22 +202,27 @@ class MyPrompt(Cmd):
             return
         if args == 'None':
             self.SET_DATA['limit'] = None
-        if args.isdigit():
+        elif args.isdigit():
             self.SET_DATA['limit'] = int(args)
         else:
+            print(args)
             print('Argument must be a digit')
             return self.run_subcommand('limit')
 
     def do_update_before(self, args):
         if args == '':
             return
-        if args == 'None':
-            self.SET_DATA['limit'] = None
-        if args.isdigit():
-            self.SET_DATA['limit'] = int(args)
+        if args == 'True':
+            self.SET_DATA['update_before'] = True
+        elif args == 'False':
+            self.SET_DATA['update_before'] = False
         else:
             print('Argument must be a digit')
-            return self.run_subcommand('limit')
+            return self.run_subcommand('update_before')
+
+    def complete_update_before(self,text, line, begidx, endidx):
+        return self.completions_list(text, ['True', 'False'])
+
     def completions_list(self, text, list_of_completions):
         if not text:
             completions = list_of_completions

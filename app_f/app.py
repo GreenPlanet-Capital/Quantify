@@ -1,10 +1,11 @@
 import os, sys
-
+sys.path.append(os.getcwd())
 import pandas as pd
 
 pd.options.plotting.backend = "plotly"
 
-sys.path.append(os.getcwd())
+from tools.forward_tester import forward_tester
+from tools.live_tester import live_tester
 from DataManager.utils.timehandler import TimeHandler
 from typing import List
 from datetime import datetime
@@ -65,110 +66,12 @@ Health check for each previous trade done by the strategy (at the end time stamp
 Do this for n end timestamps
 """
 
-
-def forward_tester():
-    # Fetch data for entire test frame & manage slices
-    setup_data(start_timestamp=datetime(2021, 6, 1), end_timestamp=datetime(2021, 12, 27))
-    strat: BaseStrategy = strat_id_to_class[1]  # Set strategy here
-
-    min_start_index = strat.timeframe.length
-    num_top = 5
-
-    strat.set_data(list_of_tickers=list_of_final_symbols,
-                   dict_of_dataframes={k: v[:min_start_index] for k, v in dict_of_dfs.items()})
-    positions: List[Position] = [Position(op) for op in strat.run()[:num_top]]
-
-    print('-' * 50)
-    print('Started Trading Period. Below are current positions')
-
-    for pos in positions[:num_top]:
-        print(pos)
-
-    random_df_list = list(dict_of_dfs.values())[0]
-    assert len(random_df_list) > min_start_index
-
-    for i in range(min_start_index, len(random_df_list)):
-        current_dict_dfs = {k: v[:i] for k, v in dict_of_dfs.items()}
-        strat.set_data(list_of_tickers=list_of_final_symbols,
-                       dict_of_dataframes=current_dict_dfs)
-
-        dict_score_dfs = strat.multiple_health_check(positions)
-
-        for ticker, tuple_df_pos in dict_score_dfs.items():
-            score_df, this_pos = tuple_df_pos
-            if not score_df.empty and score_df['exit_signal'].iloc[-1] and this_pos.is_active:
-                this_pos.is_active = False
-                current_df = current_dict_dfs[ticker].iloc[-1]
-                exit_timestamp, exit_price = TimeHandler.get_datetime_from_string(current_df['timestamp']), \
-                                             current_df['close']
-
-                this_pos.exit_timestamp = exit_timestamp
-                this_pos.exit_price = exit_price
-
-    print('-' * 50)
-    print('Ended Trading Period. Below are current positions')
-
-    for pos in positions:
-        if pos.is_active:
-            pos.is_active = False
-            current_df = current_dict_dfs[pos.ticker].iloc[-1]
-            exit_timestamp, exit_price = TimeHandler.get_datetime_from_string(current_df['timestamp']), \
-                                         current_df['close']
-
-            pos.exit_timestamp = exit_timestamp
-            pos.exit_price = exit_price
-
-        print(pos)
-
-    for ticker, tuple_df_pos in dict_score_dfs.items():
-        score_df, this_pos = tuple_df_pos
-        to_graph = pd.concat([dict_of_dfs[ticker][['close', 'timestamp']][min_start_index - 1:], score_df[['Score']]],
-                             axis=1)
-
-        list_dates = [this_pos.timestamp, this_pos.exit_timestamp]
-        list_dates = list(map(TimeHandler.get_string_from_datetime, list_dates))
-
-        fig = to_graph.plot(x='timestamp', y=[to_graph['Score'] * 10 + to_graph['close'].mean(), to_graph['close']],
-                            title=f"Stock Ticker: {ticker}")
-        list_locs = find_loc(to_graph, list_dates)
-
-        fig.add_annotation(x=to_graph.loc[list_locs[0]]['timestamp'].iloc[0],
-                           y=to_graph.loc[list_locs[0]]['close'].iloc[0],
-                           text=f"Enter date (type: {this_pos.order_type})",
-                           showarrow=True,
-                           arrowhead=1)
-
-        fig.add_annotation(x=to_graph.loc[list_locs[1]]['timestamp'].iloc[0],
-                           y=to_graph.loc[list_locs[1]]['close'].iloc[0],
-                           text=f"Exit date (type: {this_pos.order_type})",
-                           showarrow=True,
-                           arrowhead=1)
-
-        fig.update_layout(showlegend=False)
-        fig.show()
-
-
-def find_loc(df, dates):
-    marks = []
-    for date in dates:
-        marks.append(df.index[df['timestamp'] == date])
-    return marks
-
-def live_tester():
-    setup_data(start_timestamp=datetime(2021, 6, 1), end_timestamp=datetime(2022, 2, 13))
-    print("Running Strategies:\n")
-    strat: BaseStrategy = strat_id_to_class[1]
-    strat.set_data(list_of_tickers=list_of_final_symbols,
-                   dict_of_dataframes={key: dict_of_dfs[key][:-30] for key in dict_of_dfs.keys()})
-    opps: List[Opportunity] = strat.run()
-    n_top = 5
-    for pos in opps[:n_top]:
-        print(pos)
-
 def main():
     print("Running Forward Tester:\n")
-    # forward_tester()
-    live_tester()
+    # Fetch data for entire test frame & manage slices
+    setup_data(start_timestamp=datetime(2021, 6, 1), end_timestamp=datetime(2022, 2, 14))
+    strat: BaseStrategy = strat_id_to_class[1]  # Set strategy here
+    live_tester(list_of_final_symbols, dict_of_dfs, strat)
     print()
 
 
