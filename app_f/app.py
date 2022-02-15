@@ -67,7 +67,6 @@ Do this for n end timestamps
 """
 
 def main():
-    print("Running Forward Tester:\n")
     # Fetch data for entire test frame & manage slices
     start_timestamp=datetime(2021, 6, 1)
     end_timestamp=datetime(2022, 2, 14)
