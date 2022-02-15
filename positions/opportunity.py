@@ -4,10 +4,11 @@ from prettytable import PrettyTable, SINGLE_BORDER
 
 
 class Opportunity:
-    def __init__(self, *, strategy_id, timestamp: datetime, ticker, order_type, default_price, metadata: dict()) -> None:
+    def __init__(self, *, strategy_id, timestamp: datetime, ticker, exchangeName, order_type, default_price, metadata: dict()) -> None:
         self.strategy_id = strategy_id
         self.timestamp = timestamp
         self.ticker = ticker
+        self.exchangeName = exchangeName
         self.tv_link = self._generate_tv_link()
         self.order_type = order_type
         self.default_price = default_price
@@ -26,7 +27,7 @@ class Opportunity:
 
     def _generate_tv_link(self):
         #TODO Generate a link to trading view for the ticker
-        return ''
+        return f'https://www.tradingview.com/chart/?symbol={self.exchangeName}:{self.ticker}'
 
     def __repr__(self):
         x = PrettyTable()
