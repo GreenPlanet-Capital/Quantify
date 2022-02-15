@@ -1,21 +1,15 @@
-from datetime import datetime
-from pprint import pprint
-from typing import Dict, List, AnyStr
-from xml.sax import default_parser_list
+from typing import Dict, List
 from tqdm import tqdm
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 from DataManager.utils.timehandler import TimeHandler
 from constants.timeframe import TimeFrame
-from constants.utils import normalize_values
 from indicators.macd import Macd
 from indicators.rsi import Rsi
 from indicators.bollinger_bands import BollingerBands
 from positions.opportunity import Opportunity
 from positions.position import Position
 from strats.base_strategy import BaseStrategy
-import matplotlib.pyplot as plt
-import pandas_market_calendars as mcal
 
 
 class Macd_Rsi_Boll(BaseStrategy):

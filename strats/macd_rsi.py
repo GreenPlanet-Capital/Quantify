@@ -1,11 +1,8 @@
-from datetime import datetime
-from typing import Dict, List, AnyStr
-from xml.sax import default_parser_list
+from typing import Dict, List
 from tqdm import tqdm
 import pandas as pd
 from DataManager.utils.timehandler import TimeHandler
 from constants.timeframe import TimeFrame
-from constants.utils import normalize_values
 from indicators.macd import Macd
 from indicators.rsi import Rsi
 from positions.opportunity import Opportunity
@@ -47,6 +44,7 @@ class Macd_Rsi(BaseStrategy):
                     self.dict_of_dataframes[ticker]['timestamp'].iloc[-1]\
                     )
             )
+            exchangeName = ''
             order_type = df['Buy/Sell Signal'].iloc[-1]
             default_price = self.dict_of_dataframes[ticker]['close'].iloc[-1]
             score = df['Score'].iloc[-1]
@@ -56,6 +54,7 @@ class Macd_Rsi(BaseStrategy):
                     'strategy_id': strat_id, 
                     'timestamp': timestamp, 
                     'ticker': ticker, 
+                    'exchangeName': exchangeName,
                     'order_type': order_type, 
                     'default_price': default_price, 
                     'score': score
