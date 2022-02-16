@@ -16,7 +16,7 @@ class ForwardTester(BaseTester):
                  strat: BaseStrategy, num_top: int):
         super().__init__(list_of_final_symbols, dict_of_dfs, exchangeName, strat, num_top)
 
-    def execute_strat(self, graph_positions=True):
+    def execute_strat(self, graph_positions=True) -> List[Position]:
         min_start_index = self.strat.timeframe.length
         self.strat.set_data(list_of_tickers=self.list_of_final_symbols,
                             dict_of_dataframes={k: v[:min_start_index] for k, v in self.dict_of_dfs.items()},
@@ -43,6 +43,8 @@ class ForwardTester(BaseTester):
 
         if graph_positions:
             self.graph_positions(dict_score_dfs, min_start_index)
+
+        return positions
 
     def advance_forward(self, start_index, end_index, positions) -> (Dict[str, DataFrame], Dict[str, DataFrame]):
         current_dict_dfs, dict_score_dfs = dict(), dict()

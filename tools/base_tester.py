@@ -1,7 +1,8 @@
-from typing import Dict
+from typing import Dict, List
 
 from pandas import DataFrame
 
+from positions.opportunity import Opportunity
 from strats.base_strategy import BaseStrategy
 
 
@@ -14,5 +15,5 @@ class BaseTester:
         self.strat = strat
         self.num_top = num_top
 
-    def execute_strat(self, graph_positions=True):
-        pass
+    def execute_strat(self, graph_positions=True) -> List[Opportunity]:
+        return []

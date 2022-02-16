@@ -10,7 +10,7 @@ class LiveTester(BaseTester):
                  strat: BaseStrategy, num_top: int):
         super().__init__(list_of_final_symbols, dict_of_dfs, exchangeName, strat, num_top)
 
-    def execute_strat(self, graph_positions=True):
+    def execute_strat(self, graph_positions=True) -> List[Opportunity]:
         self.strat.set_data(list_of_tickers=self.list_of_final_symbols,
                             dict_of_dataframes=self.dict_of_dfs,
                             exchangeName=self.exchangeName)
@@ -20,3 +20,5 @@ class LiveTester(BaseTester):
 
         for pos in opps[:self.num_top]:
             print(pos)
+
+        return opps
