@@ -66,6 +66,9 @@ class MyPrompt(Cmd):
     TRACKED: List[Position] = dict()
     CUSTOM_PROMPT_NEEDED = False
     CUSTOM_PROMPT_MSG = ''
+    HAS_STUFF_CHANGED = True
+    CURRENT_DICT_OF_DFS = dict()
+    CURRENT_LIST_OF_TICKERS = []
 
     def do_show(self, args):
         if not args:
@@ -140,12 +143,15 @@ class MyPrompt(Cmd):
                 print(msg)
             print(f'Cancelling test\n')
             return
-        
-        list_of_final_symbols, dict_of_dfs = app.setup_data(start_timestamp=self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'],
-                        end_timestamp=self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'],
-                        limit = self.SET_DATA['limit'],
-                        exchangeName=self.SET_DATA['exchangeName'],
-                        update_before=self.SET_DATA['update_before'])
+        if self.HAS_STUFF_CHANGED:
+            list_of_final_symbols, dict_of_dfs = app.setup_data(start_timestamp=self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'],
+                            end_timestamp=self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'],
+                            limit = self.SET_DATA['limit'],
+                            exchangeName=self.SET_DATA['exchangeName'],
+                            update_before=self.SET_DATA['update_before'])
+            self.CURRENT_LIST_OF_TICKERS = list_of_final_symbols
+            self.CURRENT_DICT_OF_DFS = dict_of_dfs
+            self.HAS_STUFF_CHANGED = False
         tester = tester(list_of_final_symbols=list_of_final_symbols,
                                 dict_of_dfs=dict_of_dfs,
                                 exchangeName=self.SET_DATA['exchangeName'],
@@ -219,12 +225,16 @@ class MyPrompt(Cmd):
             N_BEST = True
         if 'timestamps' in args_flag:
             TIMESTAMPS = True
+            self.HAS_STUFF_CHANGED = True
         if 'exchangeName' in args_flag:
             EXCHANGE_NAME_FLAG = True
+            self.HAS_STUFF_CHANGED = True
         if 'limit' in args_flag:
             LIMIT_FLAG = True
+            self.HAS_STUFF_CHANGED = True
         if 'update_before' in args_flag:
             UPDATE_BEFORE = True
+            self.HAS_STUFF_CHANGED = True
         if 'strat' in args_flag:
             STRATEGY = True
         if 'n_best' in args_flag:
