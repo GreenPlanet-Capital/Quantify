@@ -21,4 +21,4 @@ class LiveTester(BaseTester):
         # for pos in opps[:self.num_top]:
         #     print(pos)
 
-        return opps
+        return opps[:self.num_top]
