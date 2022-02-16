@@ -22,6 +22,7 @@ class Position(Opportunity):
 
     @staticmethod
     def depickle(pickle_name):
+        # TODO Show tracked has .pickle.pickle
         with open(os.path.join(tracked_trades_path, f"{pickle_name}.pickle"), "rb") as file_to_read:
             loaded_object = pickle.load(file_to_read)
 

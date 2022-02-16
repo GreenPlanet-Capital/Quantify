@@ -338,6 +338,7 @@ class MyPrompt(Cmd):
     def check_tracked_integrity(self):
         list_pickle_file_names = os.listdir(tracked_trades_path)
         for pickle_file_name in list_pickle_file_names:
+            pickle_file_name = os.path.splitext(pickle_file_name)[0]
             if not pickle_file_name in self.TRACKED:
                 self.TRACKED[pickle_file_name] = Position.depickle(pickle_file_name)
     
@@ -478,6 +479,7 @@ class MyPrompt(Cmd):
         out_string = ''
         pos: Position
         for i, pos in enumerate(iterable_of_objects):
+            prepend_list = []
             if prepend:
                 prepend_list = [(prefix, i) for prefix in prepend]
             out_string_list.append(pos.get_string(pre_entries=prepend_list))
@@ -490,17 +492,19 @@ class MyPrompt(Cmd):
         print(out_string)
 
     def do_untrack(self, args):
+        self.check_tracked_integrity()
         if not args and not args in self.TRACKED:
             print('untrack needs a uuid.\nUse "show untracked" to see a list of tracked trades')
             return
         self.TRACKED[args].is_active = False
+        self.TRACKED[args].pickle()
         del self.TRACKED[args]
         file_name = f'{args}.pickle'
         shutil.move(os.path.join(tracked_trades_path, file_name),
                     os.path.join(untracked_trades_path, file_name))
 
     def complete_untrack(self,text, line, begidx, endidx):
-        return self.completions_list(text, self.TRACKED.keys())
+        return self.completions_list(text, list(self.TRACKED.keys()))
 
     def completions_list(self, text, list_of_completions):
         if not text:
@@ -580,4 +584,5 @@ if __name__ == '__main__':
     prompt = MyPrompt()
     prompt.prompt = '(q)> '
     prompt.intro = 'Quantify 0.0.0\n'
+    prompt.check_tracked_integrity()
     prompt.cmdloop(intro=None)
