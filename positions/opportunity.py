@@ -15,7 +15,7 @@ class Opportunity:
         self.default_price = default_price
         self.metadata: dict() = metadata
 
-    def get_rows(self, pre_entries: List=None, post_entries: List=None):
+    def get_rows(self, pre_entries: List=[], post_entries: List=[]):
         to_return = []
         mid_rows = [
             ('strategy_id', self.strategy_id),
@@ -27,7 +27,7 @@ class Opportunity:
             ('metadata', pprint.pformat(self.metadata))
         ]
         if pre_entries:
-            to_return.extend(mid_rows)
+            to_return.extend(pre_entries)
         to_return.extend(mid_rows)
         if post_entries:
             to_return.extend(post_entries)

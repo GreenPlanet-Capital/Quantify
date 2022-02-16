@@ -1,8 +1,10 @@
 import copy
 from itertools import zip_longest
 import os, sys
+import shutil
 sys.path.append(os.getcwd())
-from typing import List
+from constants.utils import combine, n_wise
+from typing import Iterable, List
 from positions.opportunity import Opportunity
 from positions.position import Position
 from strats.base_strategy import BaseStrategy
@@ -15,6 +17,7 @@ import datetime as dt
 from datetime import datetime
 from DataManager.utils.timehandler import TimeHandler
 from prettytable import PrettyTable, SINGLE_BORDER
+from constants.constant_defs import tracked_trades_path, untracked_trades_path
 
 TODAY = datetime.now()
 TODAY = datetime(TODAY.year, TODAY.month, TODAY.day)
@@ -22,8 +25,8 @@ TODAY = datetime(TODAY.year, TODAY.month, TODAY.day)
 class MyPrompt(Cmd):
     __hiden_methods = ('do_EOF', 'do_exchangeName', 'do_timestamps',
                         'do_limit', 'do_update_before', 'do_forward_test',
-                        'do_live_test', 'do_strat')
-    SHOW_COMMANDS = ['strats', 'set_data', 'results', 'tracked']
+                        'do_live_test', 'do_strat', 'do_n_best')
+    SHOW_COMMANDS = ['strats', 'set_data', 'results', 'tracked', 'untracked']
     RUN_COMPLETES = ['live_test', 'forward_test']
     SET_DATA = {
         'timestamps': {
@@ -33,7 +36,8 @@ class MyPrompt(Cmd):
         'limit': None,
         'update_before': False,
         'exchangeName': 'NYSE',
-        'strat': None
+        'strat': None,
+        'n_best': 5
     }
     SET_ADDL_FLAGS = ['all', 'end', ]
     SET_COMPLETES =  list(SET_DATA.keys()) + SET_ADDL_FLAGS
@@ -42,8 +46,21 @@ class MyPrompt(Cmd):
     STRAT_IDS_AND_NAMES = STRAT_IDS + STRAT_NAMES
     TIMESTAMP_COMPLETIONS = ['start_timestamp', 'end_timestamp']
     EXCHANGE_NAMES = ['NYSE', 'NASDAQ', 'OTC', 'ARCA', 'AMEX', 'BATS']
-    RESULTS: List[Opportunity] = []
-    TRACKED: List[Position] = [] # TODO populate this from disk
+    RESULTS: List[Opportunity] = [
+        Opportunity(strategy_id=0, timestamp=datetime(1, 1, 1), ticker='X',
+        exchangeName='x', order_type=1, default_price=23.23, metadata={
+            'score': 45
+        }),
+        Opportunity(strategy_id=0, timestamp=datetime(1, 1, 1), ticker='X',
+        exchangeName='x', order_type=1, default_price=23.23, metadata={
+            'score': 45
+        }),
+        Opportunity(strategy_id=0, timestamp=datetime(1, 1, 1), ticker='X',
+        exchangeName='x', order_type=1, default_price=23.23, metadata={
+            'score': 45
+        })
+        ]
+    TRACKED: List[Position] = dict()
     CUSTOM_PROMPT_NEEDED = False
     CUSTOM_PROMPT_MSG = ''
 
@@ -74,6 +91,9 @@ class MyPrompt(Cmd):
         elif args == self.SHOW_COMMANDS[3]: #tracked
             self.show_tracked()
 
+        elif args == self.SHOW_COMMANDS[4]: #untracked
+            self.show_untracked()
+
     def complete_show(self, text, line, begidx, endidx):
         return self.completions_list(text, self.SHOW_COMMANDS)
 
@@ -94,14 +114,15 @@ class MyPrompt(Cmd):
         return self.completions_list(text, self.RUN_COMPLETES)
 
     def do_forward_test(self, args):
+        # TODO
         pass
 
     def complete_forward_test(self, text, line, begidx, endidx):
-        return self.completions_list(text, ['default'])
+        return self.completions_list(text, ['set_flags'])
 
     def do_live_test(self, args):
         DEFAULT_FLAG = False
-        if args=='default':
+        if args=='set_flags':
             DEFAULT_FLAG = True
 
         if not DEFAULT_FLAG:
@@ -118,21 +139,26 @@ class MyPrompt(Cmd):
         # TODO Do the forward test here
 
     def complete_live_test(self, text, line, begidx, endidx):
-        return self.completions_list(text, ['default'])
+        return self.completions_list(text, ['set_flags'])
 
     def do_track(self, args):
         uid = -1
-        if not args and not args.isdigit() and not args.isdigit() < len(self.RESULTS):
-            print('track needs a uid of an opportunity\nuse "show results" to find the uid')
+        VALID = True
+        if not args and not args.isdigit():
+            VALID = False
             return
-        elif args.isdigit():
-            uid = int(args)
+        elif int(args) >= len(self.RESULTS):
+            VALID = False
+
+        if not VALID:
+            print('track needs a uid of an opportunity\nUse "show results" to find the uid')
+            return
 
         opp: Opportunity = self.RESULTS[uid]
         position = Position(opp)
-
-        #TODO pickle the position
-
+        self.RESULTS.pop(uid)
+        position.pickle()
+        self.TRACKED[position.pickle_name] = position
 
     def do_strat(self, args):
         if not args:
@@ -162,6 +188,7 @@ class MyPrompt(Cmd):
         LIMIT_FLAG = False
         UPDATE_BEFORE = False
         STRATEGY = False
+        N_BEST = False
 
         args_flag = args.split()
 
@@ -173,6 +200,7 @@ class MyPrompt(Cmd):
             LIMIT_FLAG = True
             UPDATE_BEFORE = True
             STRATEGY = True
+            N_BEST = True
         if 'timestamps' in args_flag:
             TIMESTAMPS = True
         if 'exchangeName' in args_flag:
@@ -183,6 +211,8 @@ class MyPrompt(Cmd):
             UPDATE_BEFORE = True
         if 'strat' in args_flag:
             STRATEGY = True
+        if 'n_best' in args_flag:
+            N_BEST = True
 
         if TIMESTAMPS:
             self.run_subcommand('timestamps')
@@ -198,6 +228,9 @@ class MyPrompt(Cmd):
         if STRATEGY:
             print('strategy', self.SET_DATA['strat'])
             self.run_subcommand('strat')
+        if N_BEST:
+            print('n_best', self.SET_DATA['n_best'])
+            self.run_subcommand('n_best')
         
         STATUS, msg = self.check_set_integrity()
         if not STATUS:
@@ -206,7 +239,7 @@ class MyPrompt(Cmd):
         self.print_set_data()
 
     def print_set_data(self):
-        print('\nFLAGS CHOSEN:')
+        print('FLAGS CHOSEN:')
         x = PrettyTable()
         x.set_style(SINGLE_BORDER)
         x.field_names = ['flags', 'value']
@@ -232,6 +265,7 @@ class MyPrompt(Cmd):
             new_start, new_end, date_range = dmgr.validate_timestamps(start_timestamp_string, end_timestamp_string)
             self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'], self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'] = TimeHandler.get_datetime_from_string(new_start), TimeHandler.get_datetime_from_string(new_end)
             if(not (len(date_range) >= strat.length_of_data_needed)):
+                print()
                 print(f'TIMESTAMPS: start_timestamp was not suffiencient for strategy "{strat.name}"\nNeeds at least {strat.length_of_data_needed} {strat.timeframe.datatype} units')
                 assumed_start = (self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'] - dt.timedelta(int(strat.length_of_data_needed*2))).date()
                 assumed_start_string = TimeHandler.get_string_from_datetime(assumed_start)
@@ -259,7 +293,11 @@ class MyPrompt(Cmd):
             INTEGRITY = False
 
         if (self.SET_DATA['limit'] is not None and self.SET_DATA['limit'] < 8):
-            msg += 'LIMIT: limit !> 8. limit needs to be None or >=8\n'
+            msg += 'LIMIT: limit !>= 8. limit needs to be None or >=8\n'
+            INTEGRITY = False
+
+        if (self.SET_DATA['n_best'] < 5):
+            msg += 'N_BEST: n_best !>= 5. n_best needs to be None or >=5\n'
             INTEGRITY = False
 
         if not self.SET_DATA['strat']:
@@ -271,6 +309,12 @@ class MyPrompt(Cmd):
 
         return INTEGRITY, msg
 
+    def check_tracked_integrity(self):
+        list_pickle_file_names = os.listdir(tracked_trades_path)
+        for pickle_file_name in list_pickle_file_names:
+            if not pickle_file_name in self.TRACKED:
+                self.TRACKED[pickle_file_name] = Position.depickle(pickle_file_name)
+    
     def complete_set(self, text, line, begidx, endidx):
         return self.completions_list(text, self.SET_COMPLETES)
 
@@ -345,6 +389,9 @@ class MyPrompt(Cmd):
             print('Argument must be a digit or "None"')
             return self.run_subcommand('limit')
 
+    def complete_limit(self, text, line, begidx, endidx):
+        return self.completions_list(text, ['None', '10', '100', '1000', '2000'])
+
     def do_update_before(self, args):
         if args == '':
             return
@@ -356,39 +403,78 @@ class MyPrompt(Cmd):
             print('Argument must be a digit')
             return self.run_subcommand('update_before')
 
-    def complete_update_before(self,text, line, begidx, endidx):
+    def complete_update_before(self, text, line, begidx, endidx):
         return self.completions_list(text, ['True', 'False'])
+
+    def do_n_best(self, args):
+        if args == '':
+            return
+        elif args.isdigit():
+            self.SET_DATA['limit'] = int(args)
+        else:
+            print(args)
+            print('Argument must be a digit')
+            return self.run_subcommand('n_best')
+
+    def complete_n_best(self, text, line, begidx, endidx):
+        return self.completions_list(text, ['5', '10', '15', '100'])
 
     def show_results(self):
         if not self.RESULTS:
             print('No results to show. Run a test.\n')
         else:
-            out_string_list = []
-            out_string = ''
-            opp: Opportunity
-            for i, opp in enumerate(self.RESULTS):
-                out_string_list.append(opp.get_string(pre_entries=[('uid', i)]))
-            
-            def combine(*strings):
-                str_list = [s for s in strings if s]
-                lines = zip(*(s.splitlines() for s in str_list))
-                return '\n'.join('  '.join(line) for line in lines)
-
-            def n_wise(iterable, n=2):
-                "s -> (s0, s1), (s2, s3), (s4, s5), ..."
-                a = iter(iterable)
-                return zip_longest(*[iter(a)]*n, fillvalue='')
-
-            pairs = n_wise(out_string_list)
-
-            for i, j in pairs:
-                out_string += combine(i, j) + '\n'
-
-            print(out_string)
+            self.print_opp_objects(self.RESULTS, prepend=['uid'])
 
     def show_tracked(self):
-        #TODO
-        pass
+        self.check_tracked_integrity()
+        if not self.TRACKED:
+            print('No positions are being tracked to show. Run a test.\n')
+            return
+        else:
+            self.print_opp_objects(self.TRACKED.values())
+
+    def show_untracked(self):
+        #Load files from disk
+        list_pickle_file_names = os.listdir(untracked_trades_path)
+        if not list_pickle_file_names:
+            print('No positions were untracked. "untrack" a position.\n')
+            return
+        
+        position_list = []
+        for pickle_file_name in list_pickle_file_names:
+            pos: Position = Position.depickle(os.path.splitext(pickle_file_name)[0])
+            position_list.append(pos)
+
+        self.print_opp_objects(position_list)
+
+    def print_opp_objects(self, iterable_of_objects: Iterable, prepend=[]):
+        out_string_list = []
+        out_string = ''
+        pos: Position
+        for i, pos in enumerate(iterable_of_objects):
+            if prepend:
+                prepend_list = [(prefix, i) for prefix in prepend]
+            out_string_list.append(pos.get_string(pre_entries=prepend_list))
+
+        pairs = n_wise(out_string_list)
+
+        for i, j in pairs:
+            out_string += combine(i, j) + '\n'
+
+        print(out_string)
+
+    def do_untrack(self, args):
+        if not args and not args in self.TRACKED:
+            print('untrack needs a uuid.\nUse "show untracked" to see a list of tracked trades')
+            return
+        self.TRACKED[args].is_active = False
+        del self.TRACKED[args]
+        file_name = f'{args}.pickle'
+        shutil.move(os.path.join(tracked_trades_path, file_name),
+                    os.path.join(untracked_trades_path, file_name))
+
+    def complete_untrack(self,text, line, begidx, endidx):
+        return self.completions_list(text, self.TRACKED.keys())
 
     def completions_list(self, text, list_of_completions):
         if not text:
