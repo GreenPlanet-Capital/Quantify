@@ -18,9 +18,15 @@ class BaseStrategy:
         self.name = name
         self.timeframe = timeframe
         self.lookback = lookback
+<<<<<<< HEAD
         self.indicator_manager: IndicatorManager = None
 
     def set_data(self, list_of_tickers: list[str], dict_of_dataframes: dict[str, DataFrame], exchangeName: str):
+=======
+        self.length_of_data_needed = max(timeframe.length, self.lookback)
+    
+    def set_data(self, list_of_tickers: list(), dict_of_dataframes: dict(), exchangeName: str):
+>>>>>>> 2ee638f6e9b08f0c63e755c8547922f1e3309f6c
         lengths = [len(df) for df in dict_of_dataframes.values()]
         max_rows = max(lengths)
         min_rows = min(lengths)

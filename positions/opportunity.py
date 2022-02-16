@@ -1,5 +1,6 @@
 from datetime import datetime
 import pprint
+from typing import List
 from prettytable import PrettyTable, SINGLE_BORDER
 
 
@@ -14,8 +15,9 @@ class Opportunity:
         self.default_price = default_price
         self.metadata: dict() = metadata
 
-    def get_rows(self):
-        return [
+    def get_rows(self, pre_entries: List=None, post_entries: List=None):
+        to_return = []
+        mid_rows = [
             ('strategy_id', self.strategy_id),
             ('timestamp', self.timestamp),
             ('ticker', self.ticker),
@@ -24,10 +26,23 @@ class Opportunity:
             ('default_price', self.default_price),
             ('metadata', pprint.pformat(self.metadata))
         ]
+        if pre_entries:
+            to_return.extend(mid_rows)
+        to_return.extend(mid_rows)
+        if post_entries:
+            to_return.extend(post_entries)
+        return to_return
+
 
     def _generate_tv_link(self):
-        #TODO Generate a link to trading view for the ticker
         return f'https://www.tradingview.com/chart/?symbol={self.exchangeName}:{self.ticker}'
+
+    def get_string(self, pre_entries: List=None, post_entries: List=None):
+        x = PrettyTable()
+        x.set_style(SINGLE_BORDER)
+        x.field_names = ['Data', 'Value']
+        x.add_rows(self.get_rows(pre_entries, post_entries))
+        return x.get_string()
 
     def __repr__(self):
         x = PrettyTable()
