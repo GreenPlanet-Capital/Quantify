@@ -8,16 +8,16 @@ class Rsi(BaseIndicator):
         super().__init__()
         self.window_length = window_length
 
-    def run(self):
-        super().run()
+    def run(self, input_dataframe: DataFrame):
+        super().run(input_dataframe)
 
-        assert len(self._dataframe[
+        assert len(input_dataframe[
                        'close']) >= self.window_length + 1, "Not enough entries in input dataframe to calculate RSI"
 
         rsi_df = DataFrame()
 
         # Calculate Price Differences
-        rsi_df['diff'] = self._dataframe['close'].diff(1)
+        rsi_df['diff'] = input_dataframe['close'].diff(1)
 
         # Calculate Avg. Gains/Losses
         rsi_df['gain'] = rsi_df['diff'].clip(lower=0).round(2)
@@ -55,8 +55,8 @@ class Rsi(BaseIndicator):
         to_return_rsi_df = DataFrame()
         to_return_rsi_df['rsi'] = rsi_df['rsi']
 
-        to_return_rsi_df['Normalized RSI'] = normalize_values(normalize_values(to_return_rsi_df['rsi'], -1, 1).abs(), 0,
+        to_return_rsi_df['normalized rsi'] = normalize_values(normalize_values(to_return_rsi_df['rsi'], -1, 1).abs(), 0,
                                                               1)
 
-        self._zero_dataframe()
-        return to_return_rsi_df
+        self.insert_all_into_df(input_dataframe, to_return_rsi_df, ['rsi', 'normalized rsi'])
+

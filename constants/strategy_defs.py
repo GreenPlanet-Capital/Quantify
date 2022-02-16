@@ -21,14 +21,16 @@ def get_strategy_definitons():
         1: TimeFrame(100, '1Day')
     }
 
-    assert len(strat_id_to_name)==len(strat_id_to_TimeFrame), "Lengths Mismatch: Add a strategy to both strat_name_to_id and strat_id_to_TimeFrame"
+    assert len(strat_id_to_name) == len(strat_id_to_TimeFrame), "Lengths Mismatch: Add a strategy to both " \
+                                                                "strat_name_to_id and strat_id_to_TimeFrame "
 
     strat_id_to_lookback = {
         0: 100,
         1: 100
     }
 
-    assert len(strat_id_to_name)==len(strat_id_to_TimeFrame), "Lengths Mismatch: Add a strategy to both strat_name_to_id and strat_id_to_lookback"
+    assert len(strat_id_to_name) == len(strat_id_to_TimeFrame), "Lengths Mismatch: Add a strategy to both " \
+                                                                "strat_name_to_id and strat_id_to_lookback "
 
     class Strategies:
         def macd_rsi(self, sid, name, timeframe: TimeFrame, lookback):
@@ -38,11 +40,13 @@ def get_strategy_definitons():
             return Macd_Rsi_Boll(sid, name, timeframe, lookback)
 
     assert len(strat_id_to_name) == \
-        len(inspect.getmembers(Strategies, inspect.isfunction)), "Lengths Mismatch: Add a strategy to both strat_name_to_id and the Strategies class"
+           len(inspect.getmembers(Strategies,
+                                  inspect.isfunction)), "Lengths Mismatch: Add a strategy to both strat_name_to_id " \
+                                                        "and the Strategies class "
 
     strats = Strategies()
 
-    strat_id_to_class = { 
+    strat_id_to_class = {
         id: getattr(strats, name.lower())(id, name, strat_id_to_TimeFrame[id], strat_id_to_lookback[id])
         for id, name in strat_id_to_name.items()
     }
