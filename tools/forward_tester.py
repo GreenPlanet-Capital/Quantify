@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from pandas import DataFrame
 
@@ -12,7 +12,7 @@ from tools.base_tester import BaseTester
 
 
 class ForwardTester(BaseTester):
-    def __init__(self, list_of_final_symbols: [str], dict_of_dfs: Dict[str, DataFrame], exchangeName: str,
+    def __init__(self, list_of_final_symbols: List[str], dict_of_dfs: Dict[str, DataFrame], exchangeName: str,
                  strat: BaseStrategy, num_top: int):
         super().__init__(list_of_final_symbols, dict_of_dfs, exchangeName, strat, num_top)
 
@@ -25,19 +25,19 @@ class ForwardTester(BaseTester):
         self.strat.instantiate_indicator_mgr()
         positions: List[Position] = [Position(op) for op in self.strat.run()[:self.num_top]]
 
-        print('-' * 50)
-        print('Started Trading Period. Below are current positions')
+        # print('-' * 50)
+        # print('Started Trading Period. Below are current positions')
 
-        for pos in positions[:self.num_top]:
-            print(pos)
+        # for pos in positions[:self.num_top]:
+        #     print(pos)
 
         random_df_list = list(self.dict_of_dfs.values())[0]
-        assert len(random_df_list) > min_start_index
+        assert len(random_df_list) >= min_start_index
 
         current_dict_dfs, dict_score_dfs = self.advance_forward(min_start_index, len(random_df_list), positions)
 
-        print('-' * 50)
-        print('Ended Trading Period. Below are current positions')
+        # print('-' * 50)
+        # print('Ended Trading Period. Below are current positions')
 
         self.handle_remaining_positons(current_dict_dfs, positions)
 
@@ -46,10 +46,10 @@ class ForwardTester(BaseTester):
 
         return positions
 
-    def advance_forward(self, start_index, end_index, positions) -> (Dict[str, DataFrame], Dict[str, DataFrame]):
+    def advance_forward(self, start_index, end_index, positions) -> Tuple[Dict[str, DataFrame], Dict[str, DataFrame]]:
         current_dict_dfs, dict_score_dfs = dict(), dict()
 
-        for i in range(start_index, end_index):
+        for i in range(start_index, end_index+1):
             current_dict_dfs = {k: v[:i] for k, v in self.dict_of_dfs.items()}
             self.strat.set_data(list_of_tickers=self.list_of_final_symbols,
                                 dict_of_dataframes=current_dict_dfs,
@@ -83,7 +83,7 @@ class ForwardTester(BaseTester):
                 pos.exit_timestamp = exit_timestamp
                 pos.exit_price = exit_price
 
-            print(pos)
+            # print(pos)
 
     def graph_positions(self, dict_score_dfs, min_start_index):
         for ticker, tuple_df_pos in dict_score_dfs.items():

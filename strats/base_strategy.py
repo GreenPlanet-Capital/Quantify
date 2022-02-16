@@ -18,6 +18,7 @@ class BaseStrategy:
         self.name = name
         self.timeframe = timeframe
         self.lookback = lookback
+        self.length_of_data_needed = max(self.timeframe.length, self.lookback)
         self.indicator_manager: IndicatorManager = None
 
     def set_data(self, list_of_tickers: list[str], dict_of_dataframes: dict[str, DataFrame], exchangeName: str):

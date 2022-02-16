@@ -53,6 +53,7 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchan
                                               end_timestamp,
                                               api='Alpaca')
     list_of_final_symbols = this_manager.list_of_symbols
+    return list_of_final_symbols, dict_of_dfs
 
 
 def main():

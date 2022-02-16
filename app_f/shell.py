@@ -3,6 +3,9 @@ from itertools import zip_longest
 import os, sys
 import shutil
 sys.path.append(os.getcwd())
+from tools.base_tester import BaseTester
+from tools.live_tester import LiveTester
+from tools.forward_tester import ForwardTester
 from constants.utils import combine, n_wise
 from typing import Iterable, List
 from positions.opportunity import Opportunity
@@ -30,13 +33,13 @@ class MyPrompt(Cmd):
     RUN_COMPLETES = ['live_test', 'forward_test']
     SET_DATA = {
         'timestamps': {
-            'CURRENT_START_TIMESTAMP': TODAY,
-            'CURRENT_END_TIMESTAMP': TODAY,
+            'CURRENT_START_TIMESTAMP': datetime(2022, 1, 1),
+            'CURRENT_END_TIMESTAMP': datetime(2022, 2, 15),
         },
         'limit': None,
         'update_before': False,
         'exchangeName': 'NYSE',
-        'strat': None,
+        'strat': app.strat_id_to_class[1],
         'n_best': 5
     }
     SET_ADDL_FLAGS = ['all', 'end', ]
@@ -114,13 +117,15 @@ class MyPrompt(Cmd):
         return self.completions_list(text, self.RUN_COMPLETES)
 
     def do_forward_test(self, args):
-        # TODO
-        pass
+        self.run_tester(args, ForwardTester)
 
     def complete_forward_test(self, text, line, begidx, endidx):
         return self.completions_list(text, ['set_flags'])
 
     def do_live_test(self, args):
+        self.run_tester(args, LiveTester)
+
+    def run_tester(self, args, tester: BaseTester):
         DEFAULT_FLAG = False
         if args=='set_flags':
             DEFAULT_FLAG = True
@@ -133,10 +138,20 @@ class MyPrompt(Cmd):
             if DEFAULT_FLAG:
                 print()
                 print(msg)
-            print('Cancelling forward_test\n')
+            print(f'Cancelling test\n')
             return
         
-        # TODO Do the forward test here
+        list_of_final_symbols, dict_of_dfs = app.setup_data(start_timestamp=self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'],
+                        end_timestamp=self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'],
+                        limit = self.SET_DATA['limit'],
+                        exchangeName=self.SET_DATA['exchangeName'],
+                        update_before=self.SET_DATA['update_before'])
+        tester = tester(list_of_final_symbols=list_of_final_symbols,
+                                dict_of_dfs=dict_of_dfs,
+                                exchangeName=self.SET_DATA['exchangeName'],
+                                strat=self.SET_DATA['strat'],
+                                num_top=self.SET_DATA['n_best'])
+        self.RESULTS = tester.execute_strat(graph_positions=False)
 
     def complete_live_test(self, text, line, begidx, endidx):
         return self.completions_list(text, ['set_flags'])
@@ -144,10 +159,11 @@ class MyPrompt(Cmd):
     def do_track(self, args):
         uid = -1
         VALID = True
-        if not args and not args.isdigit():
+        if not args:
             VALID = False
-            return
-        elif int(args) >= len(self.RESULTS):
+        elif not args.isdigit():
+            VALID = False
+        elif VALID and int(args) >= len(self.RESULTS):
             VALID = False
 
         if not VALID:

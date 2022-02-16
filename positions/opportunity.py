@@ -37,7 +37,7 @@ class Opportunity:
     def _generate_tv_link(self):
         return f'https://www.tradingview.com/chart/?symbol={self.exchangeName}:{self.ticker}'
 
-    def get_string(self, pre_entries: List=None, post_entries: List=None):
+    def get_string(self, pre_entries: List=[], post_entries: List=[]):
         x = PrettyTable()
         x.set_style(SINGLE_BORDER)
         x.field_names = ['Data', 'Value']
