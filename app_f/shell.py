@@ -436,7 +436,7 @@ class MyPrompt(Cmd):
         if args == '':
             return
         elif args.isdigit():
-            self.SET_DATA['limit'] = int(args)
+            self.SET_DATA['n_best'] = int(args)
         else:
             print(args)
             print('Argument must be a digit')
