@@ -60,7 +60,7 @@ def main():
     # Fetch data for entire test frame & manage slices
     start_timestamp = datetime(2021, 6, 1)
     end_timestamp = datetime(2021, 12, 27)
-    exchangeName = 'NASDAQ'
+    exchangeName = 'NYSE'
     limit = None
     update_before = False
 

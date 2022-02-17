@@ -29,11 +29,17 @@ class Macd(BaseIndicator):
             macd_and_signal_line['macd signal line'].iloc[i] = None
 
         # Calculating indicator information and normalizing
-        macd_and_signal_line['difference'] = macd_and_signal_line['macd'] - macd_and_signal_line['macd signal line']
+        macd_and_signal_line['difference'] = (macd_and_signal_line['macd'] -
+                                              macd_and_signal_line['macd signal line'])
+        macd_and_signal_line['difference'] = np.exp(-1e+8 * np.power(macd_and_signal_line['difference'], 2))
+
         macd_and_signal_line['normalized difference'] = 1 - normalize_values(
             normalize_values(macd_and_signal_line['difference'], -1, 1).abs(), 0, 1)
         macd_and_signal_line['normalized macd'] = normalize_values(
             normalize_values(macd_and_signal_line['macd'], -1, 1).abs(), 0, 1)
+
+        macd_and_signal_line[['normalized difference', 'normalized macd']] =\
+            macd_and_signal_line[['normalized difference', 'normalized macd']].fillna(0)
 
         self.insert_all_into_df(input_dataframe, macd_and_signal_line, ['normalized macd', 'macd', 'macd signal line',
                                                                         'normalized difference'])
