@@ -40,9 +40,9 @@ class Macd_Rsi_Boll(BaseStrategy):
         # Calculate score
         score_df = DataFrame()
 
-        score_df['score'] = 0.25 * input_df['shifted rsi'] / 100 + \
-                                 0.25 * input_df['normalized difference'] + 0.25 * \
+        score_df['score'] = 0.20 * input_df['shifted rsi'] / 100 + \
+                                 0.30 * input_df['normalized difference'] + 0.30 * \
                                            input_df['normalized macd'] + \
-                                 0.25 * input_df['diff_bb']
+                                 0.20 * input_df['diff_bb']
         score_df['timestamp'] = input_df['timestamp']
         return score_df

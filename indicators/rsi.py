@@ -29,6 +29,8 @@ class Rsi(BaseIndicator):
         rsi_df['avg_loss'] = rsi_df['loss'].rolling(window=self.window_length,
                                                     min_periods=self.window_length).mean()[:self.window_length + 1]
 
+        # TODO Optimize dataframe operations
+
         # Get WMS averages
         # Average Gains
         for i, row in enumerate(rsi_df['avg_gain'].iloc[self.window_length + 1:]):
