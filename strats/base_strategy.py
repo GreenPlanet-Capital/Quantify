@@ -25,10 +25,11 @@ class BaseStrategy:
         lengths = [len(df) for df in dict_of_dataframes.values()]
         max_rows = max(lengths)
         min_rows = min(lengths)
-        assert all([max_rows == len(df) for df in
-                    dict_of_dataframes.values()]), \
-            "Lengths Mismatch: Not all dataframes in the dictionary are of the same length"
-        assert min_rows >= self.timeframe.length, "Lengths Mismatch: Not enough entries supplied for this strategy"
+        # TODO Fix Data Manager
+        # assert all([max_rows == len(df) for df in
+        #             dict_of_dataframes.values()]), \
+        #     "Lengths Mismatch: Not all dataframes in the dictionary are of the same length"
+        # assert min_rows >= self.timeframe.length, "Lengths Mismatch: Not enough entries supplied for this strategy"
 
         self.list_of_tickers = list_of_tickers
         self.dict_of_dataframes = dict_of_dataframes

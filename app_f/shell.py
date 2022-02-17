@@ -66,6 +66,9 @@ class MyPrompt(Cmd):
     TRACKED: List[Position] = dict()
     CUSTOM_PROMPT_NEEDED = False
     CUSTOM_PROMPT_MSG = ''
+    HAS_STUFF_CHANGED = True
+    CURRENT_DICT_OF_DFS = dict()
+    CURRENT_LIST_OF_TICKERS = []
 
     def do_show(self, args):
         if not args:
@@ -140,12 +143,15 @@ class MyPrompt(Cmd):
                 print(msg)
             print(f'Cancelling test\n')
             return
-        
-        list_of_final_symbols, dict_of_dfs = app.setup_data(start_timestamp=self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'],
-                        end_timestamp=self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'],
-                        limit = self.SET_DATA['limit'],
-                        exchangeName=self.SET_DATA['exchangeName'],
-                        update_before=self.SET_DATA['update_before'])
+        if self.HAS_STUFF_CHANGED:
+            list_of_final_symbols, dict_of_dfs = app.setup_data(start_timestamp=self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'],
+                            end_timestamp=self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'],
+                            limit = self.SET_DATA['limit'],
+                            exchangeName=self.SET_DATA['exchangeName'],
+                            update_before=self.SET_DATA['update_before'])
+            self.CURRENT_LIST_OF_TICKERS = list_of_final_symbols
+            self.CURRENT_DICT_OF_DFS = dict_of_dfs
+            self.HAS_STUFF_CHANGED = False
         tester = tester(list_of_final_symbols=list_of_final_symbols,
                                 dict_of_dfs=dict_of_dfs,
                                 exchangeName=self.SET_DATA['exchangeName'],
@@ -219,12 +225,16 @@ class MyPrompt(Cmd):
             N_BEST = True
         if 'timestamps' in args_flag:
             TIMESTAMPS = True
+            self.HAS_STUFF_CHANGED = True
         if 'exchangeName' in args_flag:
             EXCHANGE_NAME_FLAG = True
+            self.HAS_STUFF_CHANGED = True
         if 'limit' in args_flag:
             LIMIT_FLAG = True
+            self.HAS_STUFF_CHANGED = True
         if 'update_before' in args_flag:
             UPDATE_BEFORE = True
+            self.HAS_STUFF_CHANGED = True
         if 'strat' in args_flag:
             STRATEGY = True
         if 'n_best' in args_flag:
@@ -328,6 +338,7 @@ class MyPrompt(Cmd):
     def check_tracked_integrity(self):
         list_pickle_file_names = os.listdir(tracked_trades_path)
         for pickle_file_name in list_pickle_file_names:
+            pickle_file_name = os.path.splitext(pickle_file_name)[0]
             if not pickle_file_name in self.TRACKED:
                 self.TRACKED[pickle_file_name] = Position.depickle(pickle_file_name)
     
@@ -426,7 +437,7 @@ class MyPrompt(Cmd):
         if args == '':
             return
         elif args.isdigit():
-            self.SET_DATA['limit'] = int(args)
+            self.SET_DATA['n_best'] = int(args)
         else:
             print(args)
             print('Argument must be a digit')
@@ -468,6 +479,7 @@ class MyPrompt(Cmd):
         out_string = ''
         pos: Position
         for i, pos in enumerate(iterable_of_objects):
+            prepend_list = []
             if prepend:
                 prepend_list = [(prefix, i) for prefix in prepend]
             out_string_list.append(pos.get_string(pre_entries=prepend_list))
@@ -480,17 +492,19 @@ class MyPrompt(Cmd):
         print(out_string)
 
     def do_untrack(self, args):
+        self.check_tracked_integrity()
         if not args and not args in self.TRACKED:
             print('untrack needs a uuid.\nUse "show untracked" to see a list of tracked trades')
             return
         self.TRACKED[args].is_active = False
+        self.TRACKED[args].pickle()
         del self.TRACKED[args]
         file_name = f'{args}.pickle'
         shutil.move(os.path.join(tracked_trades_path, file_name),
                     os.path.join(untracked_trades_path, file_name))
 
     def complete_untrack(self,text, line, begidx, endidx):
-        return self.completions_list(text, self.TRACKED.keys())
+        return self.completions_list(text, list(self.TRACKED.keys()))
 
     def completions_list(self, text, list_of_completions):
         if not text:
@@ -570,4 +584,5 @@ if __name__ == '__main__':
     prompt = MyPrompt()
     prompt.prompt = '(q)> '
     prompt.intro = 'Quantify 0.0.0\n'
+    prompt.check_tracked_integrity()
     prompt.cmdloop(intro=None)
