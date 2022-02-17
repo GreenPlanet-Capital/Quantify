@@ -15,5 +15,5 @@ class BaseTester:
         self.strat = strat
         self.num_top = num_top
 
-    def execute_strat(self, graph_positions=True) -> List[Opportunity]:
+    def execute_strat(self, graph_positions=False, print_terminal=False) -> List[Opportunity]:
         return []

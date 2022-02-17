@@ -60,8 +60,8 @@ def main():
     # Fetch data for entire test frame & manage slices
     start_timestamp = datetime(2021, 6, 1)
     end_timestamp = datetime(2021, 12, 27)
-    exchangeName = 'NYSE'
-    limit = 5
+    exchangeName = 'NASDAQ'
+    limit = None
     update_before = False
 
     setup_data(start_timestamp=start_timestamp, end_timestamp=end_timestamp,
@@ -69,11 +69,11 @@ def main():
 
     strat: BaseStrategy = strat_id_to_class[1]  # Set strategy here
 
-    tester_f: BaseTester = ForwardTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, 5)
-    tester_f.execute_strat(graph_positions=True)
+    # tester_f: BaseTester = ForwardTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, 5)
+    # tester_f.execute_strat(graph_positions=True, print_terminal=True)
 
-    # tester_l: BaseTester = LiveTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, 5)
-    # tester_l.execute_strat()
+    tester_l: BaseTester = LiveTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, 10)
+    tester_l.execute_strat(print_terminal=True)
 
     print()
 

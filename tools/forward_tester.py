@@ -16,7 +16,8 @@ class ForwardTester(BaseTester):
                  strat: BaseStrategy, num_top: int):
         super().__init__(list_of_final_symbols, dict_of_dfs, exchangeName, strat, num_top)
 
-    def execute_strat(self, graph_positions=True) -> List[Position]:
+    def execute_strat(self, graph_positions=False, print_terminal=False) -> List[Position]:
+        self.print_terminal = print_terminal
         min_start_index = self.strat.timeframe.length
         self.strat.set_data(list_of_tickers=self.list_of_final_symbols,
                             dict_of_dataframes={k: v[:min_start_index] for k, v in self.dict_of_dfs.items()},
@@ -25,19 +26,21 @@ class ForwardTester(BaseTester):
         self.strat.instantiate_indicator_mgr()
         positions: List[Position] = [Position(op) for op in self.strat.run()[:self.num_top]]
 
-        # print('-' * 50)
-        # print('Started Trading Period. Below are current positions')
+        if print_terminal:
+            print('-' * 50)
+            print('Started Trading Period. Below are current positions')
 
-        # for pos in positions[:self.num_top]:
-        #     print(pos)
+            for pos in positions[:self.num_top]:
+                print(pos)
 
         random_df_list = list(self.dict_of_dfs.values())[0]
         assert len(random_df_list) >= min_start_index
 
         current_dict_dfs, dict_score_dfs = self.advance_forward(min_start_index, len(random_df_list), positions)
 
-        # print('-' * 50)
-        # print('Ended Trading Period. Below are current positions')
+        if print_terminal:
+            print('-' * 50)
+            print('Ended Trading Period. Below are current positions')
 
         self.handle_remaining_positons(current_dict_dfs, positions)
 
@@ -83,7 +86,8 @@ class ForwardTester(BaseTester):
                 pos.exit_timestamp = exit_timestamp
                 pos.exit_price = exit_price
 
-            # print(pos)
+            if self.print_terminal:
+                print(pos)
 
     def graph_positions(self, dict_score_dfs, min_start_index):
         for ticker, tuple_df_pos in dict_score_dfs.items():
