@@ -63,6 +63,7 @@ def main():
     exchangeName = 'NYSE'
     limit = None
     update_before = False
+    n_best = 20
 
     setup_data(start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                limit=limit, exchangeName=exchangeName, update_before=update_before)
@@ -72,7 +73,7 @@ def main():
     # tester_f: BaseTester = ForwardTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, 5)
     # tester_f.execute_strat(graph_positions=True, print_terminal=True)
 
-    tester_l: BaseTester = LiveTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, 10)
+    tester_l: BaseTester = LiveTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best)
     tester_l.execute_strat(print_terminal=True)
 
     print()

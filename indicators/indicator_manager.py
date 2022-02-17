@@ -17,9 +17,9 @@ class IndicatorManager:
 
         for ticker in tqdm(self.list_of_tickers, desc=f"{sid_strategy}: {name_strategy} "):
             # FIXME: An arbitrary price of 80 was chosen here
-            # if self.dict_of_dataframes[ticker]['close'].mean() < 80:
-            #     self.dict_of_dataframes[ticker] = pd.DataFrame([[0, 0]], columns=['Score', 'Buy/Sell Signal'])
-            #     continue
+            if dict_of_dataframes[ticker]['close'].mean() < 80:
+                dict_of_dataframes[ticker][['score', 'buy/sell signal']] = 0
+                continue
             self.retrieve_single_score(ticker, dict_of_dataframes, score_func)
 
     def retrieve_single_score(self, ticker_name, dict_of_dataframes, score_func):
