@@ -23,8 +23,8 @@ class BaseStrategy:
 
     def set_data(self, list_of_tickers: list[str], dict_of_dataframes: dict[str, DataFrame], exchangeName: str):
         lengths = [len(df) for df in dict_of_dataframes.values()]
-        max_rows = max(lengths)
-        min_rows = min(lengths)
+        # max_rows = max(lengths)
+        # min_rows = min(lengths)
         # TODO Fix Data Manager
         # assert all([max_rows == len(df) for df in
         #             dict_of_dataframes.values()]), \

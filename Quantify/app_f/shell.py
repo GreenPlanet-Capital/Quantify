@@ -332,7 +332,7 @@ class MyPrompt(Cmd):
         return INTEGRITY, msg
 
     def check_tracked_integrity(self):
-        list_pickle_file_names = os.listdir(tracked_trades_path)
+        list_pickle_file_names = os.listdir(paths.tracked_trades_path)
         for pickle_file_name in list_pickle_file_names:
             pickle_file_name = os.path.splitext(pickle_file_name)[0]
             if not pickle_file_name in self.TRACKED:

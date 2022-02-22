@@ -49,9 +49,9 @@ def main():
     start_timestamp = datetime(2021, 6, 1)
     end_timestamp = datetime(2022, 2, 16)
     exchangeName = 'NYSE'
-    limit = None
-    update_before = False
-    n_best = 20
+    limit = 10
+    update_before = True
+    n_best = 5
 
     setup_data(start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                limit=limit, exchangeName=exchangeName, update_before=update_before)
