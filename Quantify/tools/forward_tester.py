@@ -49,7 +49,7 @@ class ForwardTester(BaseTester):
     def advance_forward(self, start_index, end_index, positions) -> Tuple[Dict[str, DataFrame], Dict[str, DataFrame]]:
         current_dict_dfs, dict_score_dfs = dict(), dict()
 
-        for i in range(start_index, end_index+1):
+        for i in range(start_index, end_index + 1):
             current_dict_dfs = {k: v[:i] for k, v in self.dict_of_dfs.items()}
             self.strat.set_data(list_of_tickers=self.list_of_final_symbols,
                                 dict_of_dataframes=current_dict_dfs,
@@ -83,6 +83,8 @@ class ForwardTester(BaseTester):
                 pos.exit_timestamp = exit_timestamp
                 pos.exit_price = exit_price
 
+            pos.health_df = current_dict_dfs[pos.ticker]
+
             if self.print_terminal:
                 print(pos)
 
@@ -90,13 +92,18 @@ class ForwardTester(BaseTester):
         for ticker, tuple_df_pos in dict_score_dfs.items():
             score_df, this_pos = tuple_df_pos
             to_graph = pd.concat(
-                [self.dict_of_dfs[ticker][['close', 'timestamp']][min_start_index - 1:], score_df[['score']]],
+                [self.dict_of_dfs[ticker][['close', 'timestamp']][min_start_index - 1:], score_df[['score',
+                                                                                                  'health_score']]],
                 axis=1)
 
             list_dates = [this_pos.timestamp, this_pos.exit_timestamp]
             list_dates = list(map(TimeHandler.get_string_from_datetime, list_dates))
 
-            fig = to_graph.plot(x='timestamp', y=[to_graph['score'] * 10 + to_graph['close'].mean(), to_graph['close']],
+            to_graph['graph_score'] = to_graph['score'] * 10 + to_graph['close'].mean()
+            to_graph['graph_health_score'] = to_graph['health_score'] * 10 + to_graph['close'].mean()
+
+            fig = to_graph.plot(x='timestamp', y=[to_graph['graph_score'], to_graph['close'],
+                                                  to_graph['graph_health_score']],
                                 title=f"Stock Ticker: {ticker}")
 
             to_graph['cleaned_timestamp'] = to_graph['timestamp'].apply(TimeHandler.get_clean_string_from_string)

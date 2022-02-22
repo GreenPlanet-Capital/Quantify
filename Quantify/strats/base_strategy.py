@@ -95,27 +95,44 @@ class BaseStrategy:
     def _score(self, input_df: DataFrame):
         return DataFrame()
 
-    def health_check(self, cur_opportunity: Opportunity):
-        assert cur_opportunity.strategy_id == self.sid, "Strategy type of opportunity does not match the current strat"
-        ticker, transaction_date = cur_opportunity.ticker, cur_opportunity.timestamp
+    def health_check(self, cur_position: Position):
+        assert cur_position.strategy_id == self.sid, "Strategy type of opportunity does not match the current strat"
+        ticker, transaction_date = cur_position.ticker, cur_position.timestamp
         self.indicator_manager.retrieve_single_score(ticker, self.dict_of_dataframes, self._score)
 
-        df_all_scores = DataFrame()
-        df_all_scores['score'] = 1 - self.dict_of_dataframes[ticker]['score']
-        df_after_opp = df_all_scores[self.dict_of_dataframes[ticker]['timestamp'].apply
+        df_all_scores = self.dict_of_dataframes[ticker].copy()
+
+        if cur_position.order_type == 1:
+            df_all_scores['health_score'] = 0.60 * (1 - df_all_scores['shifted rsi'] / 100) + \
+                                            0.40 * (1 - df_all_scores['normalized difference'])
+        else:
+            df_all_scores['health_score'] = 0.60 * (df_all_scores['shifted rsi'] / 100) + \
+                                            0.40 * (1 - df_all_scores['normalized difference'])
+
+        df_after_opp = df_all_scores[df_all_scores['timestamp'].apply
                                      (TimeHandler.get_datetime_from_string) > transaction_date]
 
-        # Stop Score (20%)
-        df_after_opp['highest'] = df_after_opp['score'].cummax()
-        df_after_opp['trailing_stop'] = df_after_opp['highest'] * (1 - 0.20)
-        df_after_opp['exit_signal'] = df_after_opp['score'] < df_after_opp['trailing_stop']
+        # Stop Health Score (20%)
+        df_after_opp['current_peak_change_health'] = df_after_opp['health_score'].cummax()
+        df_after_opp['trailing_stop'] = df_after_opp['current_peak_change_health'] * (1 - 0.20)
+        df_after_opp['exit_signal'] = df_after_opp['health_score'] < df_after_opp['trailing_stop']
+
+        # Current stats
+        df_after_opp['daily_percent_change_health'] = df_after_opp['health_score'].pct_change().fillna(0)
+        df_after_opp['total_percent_change_health'] = \
+            df_after_opp['daily_percent_change_health'].add(1).cumprod().sub(1)
+
+        df_after_opp['daily_percent_change_price'] = df_after_opp['close'].pct_change().fillna(0)
+        df_after_opp['total_percent_change_price'] = df_after_opp['daily_percent_change_price'].add(1).cumprod().sub(1)
 
         return df_after_opp
 
     def multiple_health_check(self, list_pos: List[Position]):
         dict_dfs = dict()
         for pos in list_pos:
-            dict_dfs[pos.ticker] = (self.health_check(pos), pos)
+            curr_health_df = self.health_check(pos)
+            pos.health_df = curr_health_df
+            dict_dfs[pos.ticker] = (curr_health_df, pos)
         return dict_dfs
 
     def __repr__(self) -> str:

@@ -1,6 +1,9 @@
 import os
 from typing import List
 from uuid import uuid4
+
+from pandas import DataFrame
+
 from Quantify.positions.opportunity import Opportunity
 from Quantify.constants.constant_defs import tracked_trades_path
 import pickle
@@ -14,6 +17,7 @@ class Position(Opportunity):
         self.exit_price = False
         self.uuid = uuid4().hex
         self.pickle_name = f'{self.ticker + self.uuid}'
+        self.health_df = DataFrame()
 
     def pickle(self):
         with open(os.path.join(tracked_trades_path, f'{self.pickle_name}.pickle'), "wb") as file_to_store:
