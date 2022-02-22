@@ -10,7 +10,6 @@ from tools.live_tester import LiveTester
 from tools.base_tester import BaseTester
 from DataManager.utils.timehandler import TimeHandler
 from datetime import datetime
-from constants.datamanager_settings import setup_datamgr_settings
 from constants.strategy_defs import get_strategy_definitons
 
 from strats.base_strategy import BaseStrategy
@@ -35,9 +34,6 @@ setup_strategies()
 
 dict_of_dfs = dict()
 list_of_final_symbols = []
-
-setup_datamgr_settings()
-
 
 def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchangeName, update_before):
     global dict_of_dfs

@@ -7,7 +7,7 @@ from strats.base_strategy import BaseStrategy
 
 
 class BaseTester:
-    def __init__(self, list_of_final_symbols: [str], dict_of_dfs: Dict[str, DataFrame], exchangeName: str,
+    def __init__(self, list_of_final_symbols: List[str], dict_of_dfs: Dict[str, DataFrame], exchangeName: str,
                  strat: BaseStrategy, num_top: int):
         self.list_of_final_symbols = list_of_final_symbols
         self.dict_of_dfs = dict_of_dfs

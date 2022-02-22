@@ -1,3 +1,4 @@
+from typing import List
 from pandas import DataFrame, Series
 
 
@@ -8,7 +9,7 @@ class BaseIndicator:
         """
         assert input_dataframe is not None, "DataNoneError: Indicator dataframe not set"
 
-    def insert_all_into_df(self, input_df: DataFrame, contains_dataframe: DataFrame, list_columns: [str]):
+    def insert_all_into_df(self, input_df: DataFrame, contains_dataframe: DataFrame, list_columns: List[str]):
         for i in range(len(list_columns)):
             input_df[list_columns[i]] = contains_dataframe[list_columns[i]]
 

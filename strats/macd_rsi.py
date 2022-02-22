@@ -26,6 +26,7 @@ class Macd_Rsi(BaseStrategy):
         input_df['buy/sell signal'] = input_df['macd'].apply(buy_sell_mva)
 
         # Calculate score
+        score_df = DataFrame()
         score_df['score'] = 0.3*input_df['shifted rsi'] / 100 + \
                             0.35*input_df['normalized difference'] + \
                             0.35*input_df['normalized macd']

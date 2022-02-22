@@ -11,8 +11,6 @@ from typing import Iterable, List
 from positions.opportunity import Opportunity
 from positions.position import Position
 from strats.base_strategy import BaseStrategy
-from constants.datamanager_settings import setup_datamgr_settings
-setup_datamgr_settings()
 from DataManager.datamgr.data_manager import DataManager
 from constants.quant_cmd import Cmd
 from app_f import app

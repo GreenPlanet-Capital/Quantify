@@ -1,4 +1,4 @@
--r DataManager/requirements.txt
+git+https://github.com/GreenPlanet-Capital/DataManager@install_b
 matplotlib
 tqdm
 prettytable
