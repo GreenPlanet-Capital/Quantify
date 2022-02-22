@@ -9,7 +9,7 @@ from typing import Iterable, List
 from Quantify.positions.opportunity import Opportunity
 from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
-from DataManager.datamgr.data_manager import DataManager
+from DataManager.datamgr import data_manager
 from Quantify.constants.quant_cmd import Cmd
 from Quantify.app_f import app
 import datetime as dt
@@ -148,8 +148,9 @@ class MyPrompt(Cmd):
             self.CURRENT_LIST_OF_TICKERS = list_of_final_symbols
             self.CURRENT_DICT_OF_DFS = dict_of_dfs
             self.HAS_STUFF_CHANGED = False
-        tester = tester(list_of_final_symbols=list_of_final_symbols,
-                                dict_of_dfs=dict_of_dfs,
+        
+        tester = tester(list_of_final_symbols=self.CURRENT_LIST_OF_TICKERS,
+                                dict_of_dfs=self.CURRENT_DICT_OF_DFS,
                                 exchangeName=self.SET_DATA['exchangeName'],
                                 strat=self.SET_DATA['strat'],
                                 num_top=self.SET_DATA['n_best'])
@@ -281,7 +282,7 @@ class MyPrompt(Cmd):
         msg = ""
         if self.SET_DATA['strat']:
             strat:BaseStrategy = self.SET_DATA['strat']
-            dmgr = DataManager()
+            dmgr = data_manager.DataManager()
             start_timestamp_string = TimeHandler.get_string_from_datetime(self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP'])
             end_timestamp_string = TimeHandler.get_string_from_datetime(self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'])
             new_start, new_end, date_range = dmgr.validate_timestamps(start_timestamp_string, end_timestamp_string)
@@ -336,7 +337,7 @@ class MyPrompt(Cmd):
         for pickle_file_name in list_pickle_file_names:
             pickle_file_name = os.path.splitext(pickle_file_name)[0]
             if not pickle_file_name in self.TRACKED:
-                self.TRACKED[pickle_file_name] = Position.depickle(pickle_file_name)
+                self.TRACKED[pickle_file_name] = Position.depickle(paths.tracked_trades_path, pickle_file_name)
     
     def complete_set(self, text, line, begidx, endidx):
         return self.completions_list(text, self.SET_COMPLETES)
@@ -465,7 +466,7 @@ class MyPrompt(Cmd):
         
         position_list = []
         for pickle_file_name in list_pickle_file_names:
-            pos: Position = Position.depickle(os.path.splitext(pickle_file_name)[0])
+            pos: Position = Position.depickle(paths.untracked_trades_path, os.path.splitext(pickle_file_name)[0])
             position_list.append(pos)
 
         self.print_opp_objects(position_list)

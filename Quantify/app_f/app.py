@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 pd.options.plotting.backend = "plotly"
 from Quantify.tools.forward_tester import ForwardTester
@@ -33,8 +34,8 @@ list_of_final_symbols = []
 def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchangeName, update_before):
     global dict_of_dfs
     global list_of_final_symbols
-    this_manager = data_manager.DataManager(limit=limit, update_before=update_before, exchangeName=exchangeName,
-                                            isDelisted=False)
+    this_manager = data_manager.DataManager(limit=limit, update_before=update_before, exchangeName=exchangeName)
+    
     start_timestamp = TimeHandler.get_string_from_datetime(start_timestamp)
     end_timestamp = TimeHandler.get_string_from_datetime(end_timestamp)
     dict_of_dfs = this_manager.get_stock_data(start_timestamp,
@@ -47,11 +48,11 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchan
 def main():
     # Fetch data for entire test frame & manage slices
     start_timestamp = datetime(2021, 6, 1)
-    end_timestamp = datetime(2022, 2, 16)
+    end_timestamp = datetime(2022, 2, 18)
     exchangeName = 'NYSE'
-    limit = 10
-    update_before = True
-    n_best = 5
+    limit = None
+    update_before = False
+    n_best = 15
 
     setup_data(start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                limit=limit, exchangeName=exchangeName, update_before=update_before)
