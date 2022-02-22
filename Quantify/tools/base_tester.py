@@ -2,8 +2,8 @@ from typing import Dict, List
 
 from pandas import DataFrame
 
-from positions.opportunity import Opportunity
-from strats.base_strategy import BaseStrategy
+from Quantify.positions.opportunity import Opportunity
+from Quantify.strats.base_strategy import BaseStrategy
 
 
 class BaseTester:

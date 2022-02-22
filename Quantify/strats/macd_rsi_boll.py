@@ -1,21 +1,13 @@
-from typing import Dict, List
-
 from pandas import DataFrame
-from tqdm import tqdm
 import pandas as pd
-
-from constants.utils import buy_sell_mva
-from indicators.indicator_manager import IndicatorManager
-
 pd.options.mode.chained_assignment = None  # default='warn'
-from DataManager.utils.timehandler import TimeHandler
-from constants.timeframe import TimeFrame
-from indicators.macd import Macd
-from indicators.rsi import Rsi
-from indicators.bollinger_bands import BollingerBands
-from positions.opportunity import Opportunity
-from positions.position import Position
-from strats.base_strategy import BaseStrategy
+from Quantify.constants.utils import buy_sell_mva
+from Quantify.indicators.indicator_manager import IndicatorManager
+from Quantify.constants.timeframe import TimeFrame
+from Quantify.indicators.macd import Macd
+from Quantify.indicators.rsi import Rsi
+from Quantify.indicators.bollinger_bands import BollingerBands
+from Quantify.strats.base_strategy import BaseStrategy
 
 
 class Macd_Rsi_Boll(BaseStrategy):

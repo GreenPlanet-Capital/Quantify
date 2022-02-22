@@ -1,18 +1,13 @@
-import os, sys
-
-sys.path.append(os.getcwd())
 import pandas as pd
-
 pd.options.plotting.backend = "plotly"
-
-from tools.forward_tester import ForwardTester
-from tools.live_tester import LiveTester
-from tools.base_tester import BaseTester
+from Quantify.tools.forward_tester import ForwardTester
+from Quantify.tools.live_tester import LiveTester
+from Quantify.tools.base_tester import BaseTester
 from DataManager.utils.timehandler import TimeHandler
+from DataManager.datamgr import data_manager
 from datetime import datetime
-from constants.strategy_defs import get_strategy_definitons
-
-from strats.base_strategy import BaseStrategy
+from Quantify.constants.strategy_defs import get_strategy_definitons
+from Quantify.strats.base_strategy import BaseStrategy
 
 strat_id_to_name = dict()
 strat_name_to_id = dict()
@@ -38,9 +33,6 @@ list_of_final_symbols = []
 def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchangeName, update_before):
     global dict_of_dfs
     global list_of_final_symbols
-
-    # Now import DataManager
-    from DataManager.datamgr import data_manager
     this_manager = data_manager.DataManager(limit=limit, update_before=update_before, exchangeName=exchangeName,
                                             isDelisted=False)
     start_timestamp = TimeHandler.get_string_from_datetime(start_timestamp)

@@ -1,7 +1,7 @@
 import inspect
-from constants.timeframe import TimeFrame
-from strats.macd_rsi import Macd_Rsi
-from strats.macd_rsi_boll import Macd_Rsi_Boll
+from Quantify.constants.timeframe import TimeFrame
+from Quantify.strats.macd_rsi import Macd_Rsi
+from Quantify.strats.macd_rsi_boll import Macd_Rsi_Boll
 
 
 def get_strategy_definitons():

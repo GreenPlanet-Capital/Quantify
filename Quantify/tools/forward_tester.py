@@ -1,14 +1,11 @@
 from typing import List, Dict, Tuple
-
 from pandas import DataFrame
-
 from DataManager.utils.timehandler import TimeHandler
 import pandas as pd
-
-from constants.utils import find_loc
-from positions.position import Position
-from strats.base_strategy import BaseStrategy
-from tools.base_tester import BaseTester
+from Quantify.constants.utils import find_loc
+from Quantify.positions.position import Position
+from Quantify.strats.base_strategy import BaseStrategy
+from Quantify.tools.base_tester import BaseTester
 
 
 class ForwardTester(BaseTester):

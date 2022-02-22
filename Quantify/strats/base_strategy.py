@@ -3,11 +3,11 @@ from typing import List, Dict
 from pandas import DataFrame
 
 from DataManager.utils.timehandler import TimeHandler
-from constants.timeframe import TimeFrame
-from indicators.indicator_manager import IndicatorManager
+from Quantify.constants.timeframe import TimeFrame
+from Quantify.indicators.indicator_manager import IndicatorManager
 
-from positions.opportunity import Opportunity
-from positions.position import Position
+from Quantify.positions.opportunity import Opportunity
+from Quantify.positions.position import Position
 
 
 class BaseStrategy:

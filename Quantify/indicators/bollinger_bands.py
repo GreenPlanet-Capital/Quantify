@@ -1,7 +1,7 @@
 from pandas import DataFrame
-from indicators.base_indicator import BaseIndicator
+from Quantify.indicators.base_indicator import BaseIndicator
 import matplotlib.pyplot as plt
-from constants.utils import normalize_values
+from Quantify.constants.utils import normalize_values
 
 
 class BollingerBands(BaseIndicator):

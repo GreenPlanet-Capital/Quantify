@@ -1,13 +1,11 @@
-from typing import Dict
-
 from pandas import DataFrame
 
-from constants.timeframe import TimeFrame
-from constants.utils import buy_sell_mva
-from indicators.macd import Macd
-from indicators.rsi import Rsi
-from strats.base_strategy import BaseStrategy
-from indicators.indicator_manager import IndicatorManager
+from Quantify.constants.timeframe import TimeFrame
+from Quantify.constants.utils import buy_sell_mva
+from Quantify.indicators.macd import Macd
+from Quantify.indicators.rsi import Rsi
+from Quantify.strats.base_strategy import BaseStrategy
+from Quantify.indicators.indicator_manager import IndicatorManager
 
 class Macd_Rsi(BaseStrategy):
     def __init__(self, sid, name, timeframe: TimeFrame, lookback) -> None:

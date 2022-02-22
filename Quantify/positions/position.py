@@ -1,9 +1,8 @@
-from datetime import datetime
 import os
 from typing import List
 from uuid import uuid4
-from positions.opportunity import Opportunity
-from constants.constant_defs import tracked_trades_path
+from Quantify.positions.opportunity import Opportunity
+from Quantify.constants.constant_defs import tracked_trades_path
 import pickle
 
 class Position(Opportunity):

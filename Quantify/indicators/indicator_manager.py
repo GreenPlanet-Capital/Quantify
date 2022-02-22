@@ -4,7 +4,7 @@ import pandas as pd
 from pandas import DataFrame
 from tqdm import tqdm
 
-from indicators.base_indicator import BaseIndicator
+from Quantify.indicators.base_indicator import BaseIndicator
 
 
 class IndicatorManager:

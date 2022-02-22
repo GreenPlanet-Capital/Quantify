@@ -1,5 +1,5 @@
 from typing import List
-from pandas import DataFrame, Series
+from pandas import DataFrame
 
 
 class BaseIndicator:

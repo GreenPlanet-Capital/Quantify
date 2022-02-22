@@ -1,24 +1,22 @@
 import copy
-from itertools import zip_longest
-import os, sys
+import os
 import shutil
-sys.path.append(os.getcwd())
-from tools.base_tester import BaseTester
-from tools.live_tester import LiveTester
-from tools.forward_tester import ForwardTester
-from constants.utils import combine, n_wise
+from Quantify.tools.base_tester import BaseTester
+from Quantify.tools.live_tester import LiveTester
+from Quantify.tools.forward_tester import ForwardTester
+from Quantify.constants.utils import combine, n_wise
 from typing import Iterable, List
-from positions.opportunity import Opportunity
-from positions.position import Position
-from strats.base_strategy import BaseStrategy
+from Quantify.positions.opportunity import Opportunity
+from Quantify.positions.position import Position
+from Quantify.strats.base_strategy import BaseStrategy
 from DataManager.datamgr.data_manager import DataManager
-from constants.quant_cmd import Cmd
-from app_f import app
+from Quantify.constants.quant_cmd import Cmd
+from Quantify.app_f import app
 import datetime as dt
 from datetime import datetime
 from DataManager.utils.timehandler import TimeHandler
 from prettytable import PrettyTable, SINGLE_BORDER
-from constants.constant_defs import tracked_trades_path, untracked_trades_path
+from Quantify.constants.constant_defs import tracked_trades_path, untracked_trades_path
 
 TODAY = datetime.now()
 TODAY = datetime(TODAY.year, TODAY.month, TODAY.day)
@@ -577,10 +575,12 @@ class MyPrompt(Cmd):
                 self.lastcmd = None
                 self.postcmd(False, None)
 
-
-if __name__ == '__main__':
+def main():
     prompt = MyPrompt()
     prompt.prompt = '(q)> '
     prompt.intro = 'Quantify 0.0.0\n'
     prompt.check_tracked_integrity()
     prompt.cmdloop(intro=None)
+
+if __name__ == '__main__':
+    main()

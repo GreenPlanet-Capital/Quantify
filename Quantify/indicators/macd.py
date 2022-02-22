@@ -1,7 +1,7 @@
 import numpy as np
 from pandas import DataFrame, Series
-from constants.utils import normalize_values
-from indicators.base_indicator import BaseIndicator
+from Quantify.constants.utils import normalize_values
+from Quantify.indicators.base_indicator import BaseIndicator
 import matplotlib.pyplot as plt
 
 

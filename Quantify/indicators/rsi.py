@@ -1,6 +1,6 @@
 from pandas import DataFrame
-from constants.utils import normalize_values
-from indicators.base_indicator import BaseIndicator
+from Quantify.constants.utils import normalize_values
+from Quantify.indicators.base_indicator import BaseIndicator
 
 
 class Rsi(BaseIndicator):
