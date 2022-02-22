@@ -16,7 +16,7 @@ import datetime as dt
 from datetime import datetime
 from DataManager.utils.timehandler import TimeHandler
 from prettytable import PrettyTable, SINGLE_BORDER
-from Quantify.constants.constant_defs import tracked_trades_path, untracked_trades_path
+import Quantify.constants.constant_defs as paths
 
 TODAY = datetime.now()
 TODAY = datetime(TODAY.year, TODAY.month, TODAY.day)
@@ -458,7 +458,7 @@ class MyPrompt(Cmd):
 
     def show_untracked(self):
         #Load files from disk
-        list_pickle_file_names = os.listdir(untracked_trades_path)
+        list_pickle_file_names = os.listdir(paths.untracked_trades_path)
         if not list_pickle_file_names:
             print('No positions were untracked. "untrack" a position.\n')
             return
@@ -496,8 +496,8 @@ class MyPrompt(Cmd):
         self.TRACKED[args].pickle()
         del self.TRACKED[args]
         file_name = f'{args}.pickle'
-        shutil.move(os.path.join(tracked_trades_path, file_name),
-                    os.path.join(untracked_trades_path, file_name))
+        shutil.move(os.path.join(paths.tracked_trades_path, file_name),
+                    os.path.join(paths.untracked_trades_path, file_name))
 
     def complete_untrack(self,text, line, begidx, endidx):
         return self.completions_list(text, list(self.TRACKED.keys()))
