@@ -17,6 +17,7 @@ setup_args = dict(
     url='https://github.com/GreenPlanet-Capital/Quantify',
     download_url='https://github.com/GreenPlanet-Capital/Quantify',
     include_package_data=True,
+    python_requires='>3.8.1',
     entry_points={
         'console_scripts': ['quantify=Quantify.app_f.shell:main']
     },
