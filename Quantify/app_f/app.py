@@ -48,7 +48,7 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchan
 
 def main():
     # Fetch data for entire test frame & manage slices
-    start_timestamp = datetime(2018, 1, 1)
+    start_timestamp = datetime(2018, 3, 6)
     end_timestamp = datetime(2022, 2, 22)
     exchangeName = 'NYSE'
     limit = None

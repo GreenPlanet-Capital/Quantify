@@ -333,7 +333,7 @@ class MyPrompt(Cmd):
             msg += 'TIMESTAMPS: ALPACA has data only for 1000 trading days.\n'
             new_start_timestamp = date_range[-1000]
             new_start_datetime = TimeHandler.get_datetime_from_timestamp(new_start_timestamp)
-            msg += f'SUGGESTION: start_timestamp suggested is {TimeHandler.get_string_from_datetime(new_start_datetime)} to make it 1000 trading days\n'
+            msg += f'SUGGESTION: start_timestamp suggested is {TimeHandler.get_alpaca_string_from_datetime(new_start_datetime)} to make it 1000 trading days\n'
             INTEGRITY = False
 
         if (self.SET_DATA['limit'] is not None and self.SET_DATA['limit'] < 8):

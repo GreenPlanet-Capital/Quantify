@@ -30,10 +30,10 @@ class ForwardTester(BaseTester):
             for pos in positions[:self.num_top]:
                 print(pos)
 
-        random_df_list = list(self.dict_of_dfs.values())[0]
-        assert len(random_df_list) >= min_start_index
+        min_df_len = min([len(df) for df in self.dict_of_dfs.values()])
+        assert len(min_df_len) >= min_start_index
 
-        current_dict_dfs, dict_score_dfs = self.advance_forward(min_start_index, len(random_df_list), positions)
+        current_dict_dfs, dict_score_dfs = self.advance_forward(min_start_index, len(min_df_len), positions)
 
         if print_terminal:
             print('-' * 50)
