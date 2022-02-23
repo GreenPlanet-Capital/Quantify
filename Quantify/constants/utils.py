@@ -21,6 +21,7 @@ def n_wise(iterable, n=2):
     "s -> (s0, s1), (s2, s3), (s4, s5), ..."
     a = iter(iterable)
     return zip_longest(*[iter(a)]*n, fillvalue='')
+
 def buy_sell_mva(x):
     if x > 0:
         return -1
@@ -28,6 +29,11 @@ def buy_sell_mva(x):
         return 1
     return 0
 
+def account_for_buy_sell_signal(rsi, signal):
+    rsi /= 100
+    if signal == 1:
+        return 1 - rsi
+    return rsi
 
 def find_loc(df, dates):
     marks = []

@@ -1,7 +1,7 @@
 from pandas import DataFrame
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
-from Quantify.constants.utils import buy_sell_mva
+from Quantify.constants import utils
 from Quantify.indicators.indicator_manager import IndicatorManager
 from Quantify.constants.timeframe import TimeFrame
 from Quantify.indicators.macd import Macd
@@ -27,14 +27,16 @@ class Macd_Rsi_Boll(BaseStrategy):
         input_df['buy/sell signal'] = 0
 
         # Calculate +1 for buy and -1 for sell
-        input_df['buy/sell signal'] = input_df['macd'].apply(buy_sell_mva)
+        input_df['buy/sell signal'] = input_df['macd'].apply(utils.buy_sell_mva)
+
+        # Calculate different values for rsi based on buy and sell
+        input_df['rsi_score'] = input_df.apply(lambda row: utils.account_for_buy_sell_signal(row['shifted rsi'], row['buy/sell signal']), axis=1)
 
         # Calculate score
         score_df = DataFrame()
 
-        score_df['score'] = 0.20 * input_df['shifted rsi'] / 100 + \
-                                 0.30 * input_df['normalized difference'] + 0.30 * \
-                                           input_df['normalized macd'] + \
-                                 0.20 * input_df['diff_bb']
+        score_df['score'] = 0.50 * input_df['rsi_score'] + \
+                            0.35 * input_df['normalized difference'] * input_df['normalized macd'] + \
+                            0.15 * input_df['diff_bb']
         score_df['timestamp'] = input_df['timestamp']
         return score_df
