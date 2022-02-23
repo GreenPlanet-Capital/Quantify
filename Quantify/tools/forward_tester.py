@@ -31,9 +31,9 @@ class ForwardTester(BaseTester):
                 print(pos)
 
         min_df_len = min([len(df) for df in self.dict_of_dfs.values()])
-        assert len(min_df_len) >= min_start_index
+        assert min_df_len >= min_start_index
 
-        current_dict_dfs, dict_score_dfs = self.advance_forward(min_start_index, len(min_df_len), positions)
+        current_dict_dfs, dict_score_dfs = self.advance_forward(min_start_index, min_df_len, positions)
 
         if print_terminal:
             print('-' * 50)
@@ -57,6 +57,7 @@ class ForwardTester(BaseTester):
 
             dict_score_dfs = self.strat.multiple_health_check(positions)
 
+            any_is_active = False
             for ticker, tuple_df_pos in dict_score_dfs.items():
                 score_df, this_pos = tuple_df_pos
                 if not score_df.empty and score_df['exit_signal'].iloc[-1] and this_pos.is_active:
@@ -67,8 +68,12 @@ class ForwardTester(BaseTester):
 
                     this_pos.exit_timestamp = exit_timestamp
                     this_pos.exit_price = exit_price
+                any_is_active = any_is_active or this_pos.is_active
 
             self.strat.zero_data()
+
+            if (not any_is_active):
+                break
 
         return current_dict_dfs, dict_score_dfs
 
@@ -99,8 +104,8 @@ class ForwardTester(BaseTester):
             list_dates = [this_pos.timestamp, this_pos.exit_timestamp]
             list_dates = list(map(TimeHandler.get_string_from_datetime, list_dates))
 
-            to_graph['graph_score'] = to_graph['score'] * 10 + to_graph['close'].mean()
-            to_graph['graph_health_score'] = to_graph['health_score'] * 10 + to_graph['close'].mean()
+            to_graph['graph_score'] = to_graph['score'] # * 10 + to_graph['close'].mean()
+            to_graph['graph_health_score'] = to_graph['health_score'] # * 10 + to_graph['close'].mean()
 
             fig = to_graph.plot(x='timestamp', y=[to_graph['graph_score'], to_graph['close'],
                                                   to_graph['graph_health_score']],
