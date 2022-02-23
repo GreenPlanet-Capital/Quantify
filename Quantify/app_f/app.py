@@ -48,19 +48,32 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchan
 
 def main():
     # Fetch data for entire test frame & manage slices
-    start_timestamp = datetime(2018, 3, 6)
+    start_timestamp = datetime(2020, 3, 6)
     end_timestamp = datetime(2022, 2, 22)
     exchangeName = 'NYSE'
     limit = None
     update_before = False
     n_best = 5
+    percent_l=0.7
 
     setup_data(start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                limit=limit, exchangeName=exchangeName, update_before=update_before)
 
+    if len(list_of_final_symbols) == 0:
+            print(f'Cancelling test...\n')
+            print('No dataframes were found for the given dates')
+            return
+
     strat: BaseStrategy = strat_id_to_class[1]  # Set strategy here
 
-    tester_f: BaseTester = ForwardTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best)
+    tester_f: BaseTester = ForwardTester(
+                        list_of_final_symbols, 
+                        dict_of_dfs, 
+                        exchangeName, 
+                        strat, 
+                        n_best,
+                        percent_l=percent_l
+                    )
     tester_f.execute_strat(graph_positions=True, print_terminal=True)
 
     # tester_l: BaseTester = LiveTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best)

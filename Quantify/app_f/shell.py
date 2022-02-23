@@ -30,14 +30,15 @@ class MyPrompt(Cmd):
     RUN_COMPLETES = ['live_test', 'forward_test']
     SET_DATA = {
         'timestamps': {
-            'CURRENT_START_TIMESTAMP': datetime(2022, 1, 1),
-            'CURRENT_END_TIMESTAMP': datetime(2022, 2, 15),
+            'CURRENT_START_TIMESTAMP': TODAY,
+            'CURRENT_END_TIMESTAMP': TODAY,
         },
         'limit': None,
         'update_before': False,
         'exchangeName': 'NYSE',
         'strat': app.strat_id_to_class[1],
-        'n_best': 5
+        'n_best': 5,
+        'percent_l': 0.7,
     }
     SET_ADDL_FLAGS = ['all', 'end', ]
     SET_COMPLETES =  list(SET_DATA.keys()) + SET_ADDL_FLAGS
@@ -149,12 +150,19 @@ class MyPrompt(Cmd):
             self.CURRENT_LIST_OF_TICKERS = list_of_final_symbols
             self.CURRENT_DICT_OF_DFS = dict_of_dfs
             self.HAS_STUFF_CHANGED = False
+
+        if len(self.CURRENT_LIST_OF_TICKERS) == 0:
+            print(f'Cancelling test...\n')
+            print('No dataframes were found for the given dates')
+            return
         
         tester = tester(list_of_final_symbols=self.CURRENT_LIST_OF_TICKERS,
                                 dict_of_dfs=self.CURRENT_DICT_OF_DFS,
                                 exchangeName=self.SET_DATA['exchangeName'],
                                 strat=self.SET_DATA['strat'],
-                                num_top=self.SET_DATA['n_best'])
+                                num_top=self.SET_DATA['n_best'],
+                                percent_l=self.SET_DATA['percent_l'],
+                        )
         self.RESULTS = tester.execute_strat(graph_positions=False)
 
     def complete_live_test(self, text, line, begidx, endidx):
@@ -209,6 +217,7 @@ class MyPrompt(Cmd):
         UPDATE_BEFORE = False
         STRATEGY = False
         N_BEST = False
+        PERCENT_L = False
 
         args_flag = args.split()
 
@@ -221,6 +230,7 @@ class MyPrompt(Cmd):
             UPDATE_BEFORE = True
             STRATEGY = True
             N_BEST = True
+            PERCENT_L = True
         if 'timestamps' in args_flag:
             TIMESTAMPS = True
             self.HAS_STUFF_CHANGED = True
@@ -237,6 +247,8 @@ class MyPrompt(Cmd):
             STRATEGY = True
         if 'n_best' in args_flag:
             N_BEST = True
+        if 'percent_l' in args_flag:
+            PERCENT_L = True
 
         if TIMESTAMPS:
             self.run_subcommand('timestamps')
@@ -255,7 +267,9 @@ class MyPrompt(Cmd):
         if N_BEST:
             print('n_best', self.SET_DATA['n_best'])
             self.run_subcommand('n_best')
-        
+        if PERCENT_L:
+            print('percent_l', self.SET_DATA['percent_l'])
+            self.run_subcommand('percent_l')
         STATUS, msg = self.check_set_integrity()
         if not STATUS:
             print(msg)
@@ -342,6 +356,10 @@ class MyPrompt(Cmd):
 
         if (self.SET_DATA['n_best'] < 5):
             msg += 'N_BEST: n_best !>= 5. n_best needs to be None or >=5\n'
+            INTEGRITY = False
+
+        if not (self.SET_DATA['percent_l'] >=0 and self.SET_DATA['percent_l'] <= 1):
+            msg += f'PERCENT_L: percent_l should be a percentage between 0 and 1 (inclusive). {self.SET_DATA["percent_l"]} is invalid\n'
             INTEGRITY = False
 
         if not self.SET_DATA['strat']:
@@ -463,6 +481,24 @@ class MyPrompt(Cmd):
 
     def complete_n_best(self, text, line, begidx, endidx):
         return self.completions_list(text, ['5', '10', '15', '100'])
+
+    def do_percent_l(self, args):
+        if args == '':
+            return
+
+        SUCCESS = True
+        f = float('-inf')
+        try:
+            f = float(args)
+        except ValueError:
+            SUCCESS = False
+
+        if SUCCESS:
+            self.SET_DATA['percent_l'] = f
+        else:
+            print(args)
+            print('Argument must be a real number between 0 and 1')
+            return self.run_subcommand('percent_l')
 
     def show_results(self):
         if not self.RESULTS:

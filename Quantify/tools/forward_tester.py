@@ -3,6 +3,7 @@ from pandas import DataFrame
 from DataManager.utils.timehandler import TimeHandler
 import pandas as pd
 from Quantify.constants.utils import find_loc
+from Quantify.positions.opportunity import Opportunity
 from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
 from Quantify.tools.base_tester import BaseTester
@@ -10,8 +11,8 @@ from Quantify.tools.base_tester import BaseTester
 
 class ForwardTester(BaseTester):
     def __init__(self, list_of_final_symbols: List[str], dict_of_dfs: Dict[str, DataFrame], exchangeName: str,
-                 strat: BaseStrategy, num_top: int):
-        super().__init__(list_of_final_symbols, dict_of_dfs, exchangeName, strat, num_top)
+                 strat: BaseStrategy, num_top: int, percent_l: float=0.7):
+        super().__init__(list_of_final_symbols, dict_of_dfs, exchangeName, strat, num_top, percent_l)
 
     def execute_strat(self, graph_positions=False, print_terminal=False) -> List[Position]:
         self.print_terminal = print_terminal
@@ -21,13 +22,15 @@ class ForwardTester(BaseTester):
                             exchangeName=self.exchangeName)
 
         self.strat.instantiate_indicator_mgr()
-        positions: List[Position] = [Position(op) for op in self.strat.run()[:self.num_top]]
+
+        opps = self.strat.run()
+        positions: List[Position] = [Position(op) for op in self.get_good_mix_of_opps(opps)]
 
         if print_terminal:
             print('-' * 50)
             print('Started Trading Period. Below are current positions')
 
-            for pos in positions[:self.num_top]:
+            for pos in positions:
                 print(pos)
 
         min_df_len = min([len(df) for df in self.dict_of_dfs.values()])
