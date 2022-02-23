@@ -40,15 +40,16 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchan
     end_timestamp = TimeHandler.get_string_from_datetime(end_timestamp)
     dict_of_dfs = this_manager.get_stock_data(start_timestamp,
                                               end_timestamp,
-                                              api='Alpaca')
+                                              api='Alpaca',
+                                              fill_data=5)
     list_of_final_symbols = this_manager.list_of_symbols
     return list_of_final_symbols, dict_of_dfs
 
 
 def main():
     # Fetch data for entire test frame & manage slices
-    start_timestamp = datetime(2019, 7, 1)
-    end_timestamp = datetime(2022, 2, 18)
+    start_timestamp = datetime(2018, 1, 1)
+    end_timestamp = datetime(2022, 2, 22)
     exchangeName = 'NYSE'
     limit = None
     update_before = False

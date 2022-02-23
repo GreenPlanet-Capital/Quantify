@@ -15,6 +15,7 @@ from Quantify.app_f import app
 import datetime as dt
 from datetime import datetime
 from DataManager.utils.timehandler import TimeHandler
+from DataManager.datamgr import data_extractor
 from prettytable import PrettyTable, SINGLE_BORDER
 import Quantify.constants.constant_defs as paths
 
@@ -280,6 +281,8 @@ class MyPrompt(Cmd):
     def check_set_integrity(self):
         INTEGRITY = True
         msg = ""
+
+        date_range = None
         if self.SET_DATA['strat']:
             strat:BaseStrategy = self.SET_DATA['strat']
             dmgr = data_manager.DataManager()
@@ -313,6 +316,24 @@ class MyPrompt(Cmd):
             INTEGRITY = False
         if (self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP'] > TODAY):
             msg += 'TIMESTAMPS: end_timestamp is in the future\n'
+            INTEGRITY = False
+
+        if (len
+            (
+                data_extractor.DataExtractor().callCalendarAlpaca(
+                    TimeHandler.get_alpaca_string_from_datetime(
+                        self.SET_DATA['timestamps']['CURRENT_START_TIMESTAMP']
+                    ),
+                    TimeHandler.get_alpaca_string_from_datetime(
+                        self.SET_DATA['timestamps']['CURRENT_END_TIMESTAMP']
+                    ),
+                )
+            ) 
+            > 1000):
+            msg += 'TIMESTAMPS: ALPACA has data only for 1000 trading days.\n'
+            new_start_timestamp = date_range[-1000]
+            new_start_datetime = TimeHandler.get_datetime_from_timestamp(new_start_timestamp)
+            msg += f'SUGGESTION: start_timestamp suggested is {TimeHandler.get_string_from_datetime(new_start_datetime)} to make it 1000 trading days\n'
             INTEGRITY = False
 
         if (self.SET_DATA['limit'] is not None and self.SET_DATA['limit'] < 8):
