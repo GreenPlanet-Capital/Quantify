@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 pd.options.plotting.backend = "plotly"
 from Quantify.tools.forward_tester import ForwardTester
@@ -9,6 +10,10 @@ from DataManager.datamgr import data_manager
 from datetime import datetime
 from Quantify.constants.strategy_defs import get_strategy_definitons
 from Quantify.strats.base_strategy import BaseStrategy
+
+import warnings
+warnings.filterwarnings('error')
+np.seterr(invalid='raise')
 
 strat_id_to_name = dict()
 strat_name_to_id = dict()
