@@ -1,4 +1,5 @@
 from typing import List, Dict
+import numpy as np
 
 from pandas import DataFrame
 
@@ -103,14 +104,15 @@ class BaseStrategy:
         df_all_scores = self.dict_of_dataframes[ticker].copy()
 
         df_all_scores['health_score'] = 0.60 * df_all_scores['rsi_score'] + \
-                                        0.40 * (1 - df_all_scores['normalized macd'])
+                                        0.40 * (1-df_all_scores['normalized macd'].replace({0:np.nan})).fillna(0)
 
         df_after_opp = df_all_scores[df_all_scores['timestamp'].apply
                                      (TimeHandler.get_datetime_from_string) > transaction_date]
 
         # Stop Health Score (20%)
         df_after_opp['current_peak_change_health'] = df_after_opp['health_score'].cummax()
-        df_after_opp['trailing_stop'] = df_after_opp['current_peak_change_health'] * (1 - 0.20)
+        # TODO WHAT THIS
+        df_after_opp['trailing_stop'] = df_after_opp['current_peak_change_health'] * (1 - 0.30)
         df_after_opp['exit_signal'] = df_after_opp['health_score'] < df_after_opp['trailing_stop']
 
         # Current stats

@@ -31,10 +31,10 @@ class Macd(BaseIndicator):
         # Calculating indicator information and normalizing
         macd_and_signal_line['difference'] = (macd_and_signal_line['macd'] -
                                               macd_and_signal_line['macd signal line'])
-        macd_and_signal_line['difference'] = np.exp(-1e+8 * np.power(macd_and_signal_line['difference'], 2))
+        macd_and_signal_line['difference'] = np.exp(-1e+2 * np.power(macd_and_signal_line['difference'], 2))
 
-        macd_and_signal_line['normalized difference'] = 1 - normalize_values(
-            normalize_values(macd_and_signal_line['difference'], -1, 1).abs(), 0, 1)
+        macd_and_signal_line['normalized difference'] = normalize_values(
+            macd_and_signal_line['difference'], 0, 1)
         macd_and_signal_line['normalized macd'] = normalize_values(
             normalize_values(macd_and_signal_line['macd'], -1, 1).abs(), 0, 1)
 
