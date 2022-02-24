@@ -29,12 +29,6 @@ def buy_sell_mva(x):
         return 1
     return 0
 
-def account_for_buy_sell_signal(rsi, signal):
-    rsi /= 100
-    if signal == 1:
-        return 1 - rsi
-    return rsi
-
 def find_loc(df, dates):
     marks = []
     for date in dates:

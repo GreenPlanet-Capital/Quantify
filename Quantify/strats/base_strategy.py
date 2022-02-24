@@ -102,12 +102,8 @@ class BaseStrategy:
 
         df_all_scores = self.dict_of_dataframes[ticker].copy()
 
-        if cur_position.order_type == 1:
-            df_all_scores['health_score'] = 0.60 * (1 - df_all_scores['shifted rsi'] / 100) + \
-                                            0.40 * (1 - df_all_scores['normalized difference'])
-        else:
-            df_all_scores['health_score'] = 0.60 * (df_all_scores['shifted rsi'] / 100) + \
-                                            0.40 * (1 - df_all_scores['normalized difference'])
+        df_all_scores['health_score'] = 0.60 * df_all_scores['rsi_score'] + \
+                                        0.40 * (1 - df_all_scores['normalized macd'])
 
         df_after_opp = df_all_scores[df_all_scores['timestamp'].apply
                                      (TimeHandler.get_datetime_from_string) > transaction_date]

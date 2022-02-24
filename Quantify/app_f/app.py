@@ -51,7 +51,7 @@ def main():
     start_timestamp = datetime(2020, 3, 6)
     end_timestamp = datetime(2022, 2, 22)
     exchangeName = 'NYSE'
-    limit = None
+    limit = 300
     update_before = False
     n_best = 5
     percent_l=0.7

@@ -152,8 +152,8 @@ class MyPrompt(Cmd):
             self.HAS_STUFF_CHANGED = False
 
         if len(self.CURRENT_LIST_OF_TICKERS) == 0:
-            print(f'Cancelling test...\n')
-            print('No dataframes were found for the given dates')
+            print(f'Cancelling test...')
+            print('No dataframes were found for the given dates\n')
             return
         
         tester = tester(list_of_final_symbols=self.CURRENT_LIST_OF_TICKERS,
