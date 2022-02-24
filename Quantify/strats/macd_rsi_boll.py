@@ -26,18 +26,20 @@ class Macd_Rsi_Boll(BaseStrategy):
         # Shifting RSI down by one and constricting
         input_df['shifted rsi'] = input_df['rsi'].shift(1)
         input_df['c_shifted_rsi'] = input_df.apply(lambda row: IndicUtils.constrain(row['shifted rsi'], 20, 80), axis=1)
-        input_df['zc_shifted_rsi'] = input_df.apply(lambda row: IndicUtils.zero_out_between_range(row['c_shifted_rsi'], 40, 60), axis=1)
+        input_df['zc_shifted_rsi'] = input_df.apply(lambda row: IndicUtils.nan_out_between_range(row['c_shifted_rsi'], 40, 60), axis=1)
         
         # Calculate +1 for buy and -1 for sell
         input_df['buy/sell signal'] = 0
         input_df['buy/sell signal'] = input_df['macd'].apply(generic_utils.buy_sell_mva)
 
         # Calculate different values for rsi based on buy and sell
+        input_df['rsi_health_score'] = input_df.apply(lambda row: IndicUtils.account_for_buy_sell_signal(row['shifted rsi']/100, row['buy/sell signal']), axis=1)
         input_df['rsi_score'] = input_df.apply(lambda row: IndicUtils.account_for_buy_sell_signal(row['zc_shifted_rsi']/100, row['buy/sell signal']), axis=1)
-
+        input_df['rsi_score'] = input_df['rsi_score'].fillna(0)
         # Calculate score
         score_df = DataFrame()
 
+        #TODO Account for hard carry
         score_df['score'] = 0.50 * input_df['rsi_score'] + \
                             0.35 * input_df['normalized difference'] * input_df['normalized macd'] + \
                             0.15 * input_df['diff_bb']

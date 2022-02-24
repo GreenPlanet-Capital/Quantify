@@ -57,13 +57,13 @@ class ForwardTester(BaseTester):
                             exchangeName=self.exchangeName)
         dict_score_dfs = self.strat.multiple_health_check(positions)
 
-        for i in tqdm(range(start_index, end_index + 1), desc=f'Forward Testing for {end_index + 1} days'):
+        for i in tqdm(range(start_index, end_index), desc=f'Forward Testing for {end_index + 1} days'):
             any_is_active = False
             for ticker, tuple_df_pos in dict_score_dfs.items():
                 score_df, this_pos = tuple_df_pos
-                if not score_df.empty and score_df['exit_signal'].iloc[i] and this_pos.is_active:
+                if not score_df.empty and score_df['exit_signal'].loc[i] and this_pos.is_active:
                     this_pos.is_active = False
-                    current_df = current_dict_dfs[ticker].iloc[i]
+                    current_df = current_dict_dfs[ticker].loc[i]
                     exit_timestamp, exit_price = TimeHandler.get_clean_datetime_from_string(current_df['timestamp']), \
                                                  current_df['close']
 

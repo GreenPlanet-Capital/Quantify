@@ -11,8 +11,6 @@ from datetime import datetime
 from Quantify.constants.strategy_defs import get_strategy_definitons
 from Quantify.strats.base_strategy import BaseStrategy
 
-import warnings
-warnings.filterwarnings('error')
 np.seterr(invalid='raise')
 
 strat_id_to_name = dict()
@@ -53,13 +51,13 @@ def setup_data(start_timestamp: datetime, end_timestamp: datetime, limit, exchan
 
 def main():
     # Fetch data for entire test frame & manage slices
-    start_timestamp = datetime(2020, 3, 6)
+    start_timestamp = datetime(2021, 7, 6)
     end_timestamp = datetime(2022, 2, 22)
     exchangeName = 'NYSE'
-    limit = 300
+    limit = None
     update_before = False
-    n_best = 5
-    percent_l=0.7
+    n_best = 30
+    percent_l=0.5
 
     setup_data(start_timestamp=start_timestamp, end_timestamp=end_timestamp,
                limit=limit, exchangeName=exchangeName, update_before=update_before)
