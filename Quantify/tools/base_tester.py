@@ -33,6 +33,8 @@ class BaseTester:
                     n_shorts_req-=1
                 else:
                     continue
+            else: #ignore order type of 0
+                continue
 
             mixed_opps.append(op)
             if not (n_longs_req or n_shorts_req):
