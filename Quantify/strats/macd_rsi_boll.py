@@ -25,15 +25,15 @@ class Macd_Rsi_Boll(BaseStrategy):
     def _score(self, input_df: DataFrame):
         # Shifting RSI down by one and constricting
         input_df['shifted rsi'] = input_df['rsi'].shift(1)
-        input_df['shifted rsi'] = input_df.apply(lambda row: IndicUtils.constrain(row['shifted rsi'], 20, 80), axis=1)
-        input_df['shifted rsi'] = input_df.apply(lambda row: IndicUtils.zero_out_between_range(row['shifted rsi'], 40, 60), axis=1)
+        input_df['c_shifted_rsi'] = input_df.apply(lambda row: IndicUtils.constrain(row['shifted rsi'], 20, 80), axis=1)
+        input_df['zc_shifted_rsi'] = input_df.apply(lambda row: IndicUtils.zero_out_between_range(row['c_shifted_rsi'], 40, 60), axis=1)
         
         # Calculate +1 for buy and -1 for sell
         input_df['buy/sell signal'] = 0
         input_df['buy/sell signal'] = input_df['macd'].apply(generic_utils.buy_sell_mva)
 
         # Calculate different values for rsi based on buy and sell
-        input_df['rsi_score'] = input_df.apply(lambda row: IndicUtils.account_for_buy_sell_signal(row['shifted rsi']/100, row['buy/sell signal']), axis=1)
+        input_df['rsi_score'] = input_df.apply(lambda row: IndicUtils.account_for_buy_sell_signal(row['zc_shifted_rsi']/100, row['buy/sell signal']), axis=1)
 
         # Calculate score
         score_df = DataFrame()

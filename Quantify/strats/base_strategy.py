@@ -103,7 +103,7 @@ class BaseStrategy:
 
         df_all_scores = self.dict_of_dataframes[ticker].copy()
 
-        df_all_scores['health_score'] = 0.60 * df_all_scores['rsi_score'] + \
+        df_all_scores['health_score'] = 0.60 * df_all_scores['shifted rsi'] + \
                                         0.40 * (1-df_all_scores['normalized macd'].replace({0:np.nan})).fillna(0)
 
         df_after_opp = df_all_scores[df_all_scores['timestamp'].apply
@@ -117,6 +117,7 @@ class BaseStrategy:
 
         # Current stats
         df_after_opp['daily_percent_change_health'] = df_after_opp['health_score'].pct_change().fillna(0)
+        df_after_opp['daily_percent_change_health'][df_after_opp['daily_percent_change_health'] == np.inf] = 1
         df_after_opp['total_percent_change_health'] = \
             df_after_opp['daily_percent_change_health'].add(1).cumprod().sub(1)
 
