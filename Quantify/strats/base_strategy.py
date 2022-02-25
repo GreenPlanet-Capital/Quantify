@@ -104,20 +104,34 @@ class BaseStrategy:
         df_all_scores = self.dict_of_dataframes[ticker].copy()
 
         df_all_scores['health_score'] = 0.60 * df_all_scores['rsi_health_score'] + \
-                                        0.40 * (1-df_all_scores['normalized macd'].replace({0:np.nan})).fillna(0)
+                                        0.40 * (1 - df_all_scores['normalized macd'].replace({0: np.nan})).fillna(0)
 
         df_after_opp = df_all_scores[df_all_scores['timestamp'].apply
                                      (TimeHandler.get_datetime_from_string) > transaction_date]
 
+        # Trailing Stop Loss (7.5%)
         df_after_opp['daily_percent_change_price'] = df_after_opp['close'].pct_change().fillna(0)
         df_after_opp['total_percent_change_price'] = df_after_opp['daily_percent_change_price'].add(1).cumprod().sub(1)
-        df_after_opp['current_peak_change_price'] = df_after_opp['close'].cummax()
-        df_after_opp['trailing_stop_price'] = df_after_opp['current_peak_change_price'] * (1 + ( -cur_position.order_type * 0.10 ))
 
-        # Stop Health Score (20%)
+        if cur_position.order_type == 1:
+            df_after_opp['current_peak_change_price'] = df_after_opp['close'].cummax()
+        else:
+            df_after_opp['current_peak_change_price'] = df_after_opp['close'].cummin()
+
+        df_after_opp['trailing_stop_price'] = df_after_opp['current_peak_change_price'] * (
+                    1 + (-cur_position.order_type * 0.075))
+
+        # Stop Health Score (30%)
         df_after_opp['current_peak_change_health'] = df_after_opp['health_score'].cummax()
         df_after_opp['trailing_stop_health'] = df_after_opp['current_peak_change_health'] * (1 - 0.30)
-        df_after_opp['exit_signal'] = (df_after_opp['health_score'] < df_after_opp['trailing_stop_health'])  # | (df_after_opp['close'] < df_after_opp['trailing_stop_price'])
+
+        # Exit Signal
+        df_after_opp['exit_signal'] = (df_after_opp['health_score'] < df_after_opp['trailing_stop_health'])
+
+        if cur_position.order_type == 1:
+            df_after_opp['exit_signal'] |= (df_after_opp['close'] < df_after_opp['trailing_stop_price'])
+        else:
+            df_after_opp['exit_signal'] |= (df_after_opp['close'] > df_after_opp['trailing_stop_price'])
 
         # Current stats
         df_after_opp['daily_percent_change_health'] = df_after_opp['health_score'].pct_change().fillna(0)
