@@ -4,6 +4,7 @@ from DataManager.utils.timehandler import TimeHandler
 import pandas as pd
 from tqdm import tqdm
 from Quantify.constants.utils import find_loc
+from Quantify.monitors.trailing_monitor import TrailingMonitor
 from Quantify.positions.opportunity import Opportunity
 from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
@@ -55,7 +56,8 @@ class ForwardTester(BaseTester):
         self.strat.set_data(list_of_tickers=self.list_of_final_symbols,
                             dict_of_dataframes=current_dict_dfs,
                             exchangeName=self.exchangeName)
-        dict_score_dfs = self.strat.multiple_health_check(positions)
+        health_monitor = TrailingMonitor(self.strat.sid, 'Trailing Health Check', self.strat)
+        dict_score_dfs = health_monitor.multiple_health_check(positions)
 
         for i in tqdm(range(start_index, end_index), desc=f'Forward Testing for {end_index + 1} days'):
             any_is_active = False

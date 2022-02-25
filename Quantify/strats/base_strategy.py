@@ -1,5 +1,4 @@
 from typing import List, Dict
-import numpy as np
 
 from pandas import DataFrame
 
@@ -8,7 +7,6 @@ from Quantify.constants.timeframe import TimeFrame
 from Quantify.indicators.indicator_manager import IndicatorManager
 
 from Quantify.positions.opportunity import Opportunity
-from Quantify.positions.position import Position
 
 
 class BaseStrategy:
@@ -95,59 +93,6 @@ class BaseStrategy:
 
     def _score(self, input_df: DataFrame):
         return DataFrame()
-
-    def health_check(self, cur_position: Position):
-        assert cur_position.strategy_id == self.sid, "Strategy type of opportunity does not match the current strat"
-        ticker, transaction_date = cur_position.ticker, cur_position.timestamp
-        self.indicator_manager.retrieve_single_score(ticker, self.dict_of_dataframes, self._score)
-
-        df_all_scores = self.dict_of_dataframes[ticker].copy()
-
-        df_all_scores['health_score'] = 0.60 * df_all_scores['rsi_health_score'] + \
-                                        0.40 * (1 - df_all_scores['normalized macd'].replace({0: np.nan})).fillna(0)
-
-        df_after_opp = df_all_scores[df_all_scores['timestamp'].apply
-                                     (TimeHandler.get_datetime_from_string) > transaction_date]
-
-        # Trailing Stop Loss (7.5%)
-        df_after_opp['daily_percent_change_price'] = df_after_opp['close'].pct_change().fillna(0)
-        df_after_opp['total_percent_change_price'] = df_after_opp['daily_percent_change_price'].add(1).cumprod().sub(1)
-
-        if cur_position.order_type == 1:
-            df_after_opp['current_peak_change_price'] = df_after_opp['close'].cummax()
-        else:
-            df_after_opp['current_peak_change_price'] = df_after_opp['close'].cummin()
-
-        df_after_opp['trailing_stop_price'] = df_after_opp['current_peak_change_price'] * (
-                    1 + (-cur_position.order_type * 0.075))
-
-        # Stop Health Score (30%)
-        df_after_opp['current_peak_change_health'] = df_after_opp['health_score'].cummax()
-        df_after_opp['trailing_stop_health'] = df_after_opp['current_peak_change_health'] * (1 - 0.30)
-
-        # Exit Signal
-        df_after_opp['exit_signal'] = (df_after_opp['health_score'] < df_after_opp['trailing_stop_health'])
-
-        if cur_position.order_type == 1:
-            df_after_opp['exit_signal'] |= (df_after_opp['close'] < df_after_opp['trailing_stop_price'])
-        else:
-            df_after_opp['exit_signal'] |= (df_after_opp['close'] > df_after_opp['trailing_stop_price'])
-
-        # Current stats
-        df_after_opp['daily_percent_change_health'] = df_after_opp['health_score'].pct_change().fillna(0)
-        df_after_opp['daily_percent_change_health'][df_after_opp['daily_percent_change_health'] == np.inf] = 1
-        df_after_opp['total_percent_change_health'] = \
-            df_after_opp['daily_percent_change_health'].add(1).cumprod().sub(1)
-
-        return df_after_opp
-
-    def multiple_health_check(self, list_pos: List[Position]):
-        dict_dfs = dict()
-        for pos in list_pos:
-            curr_health_df = self.health_check(pos)
-            pos.health_df = curr_health_df
-            dict_dfs[pos.ticker] = (curr_health_df, pos)
-        return dict_dfs
 
     def __repr__(self) -> str:
         return self.name
