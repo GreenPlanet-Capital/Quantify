@@ -44,7 +44,7 @@ class ForwardTester(BaseTester):
             print('-' * 50)
             print('Ended Trading Period. Below are current positions')
 
-        self.handle_remaining_positons(current_dict_dfs, positions)
+        self.handle_remaining_positions(current_dict_dfs, positions)
 
         if graph_positions:
             self.graph_positions(dict_score_dfs, min_start_index)
@@ -79,7 +79,7 @@ class ForwardTester(BaseTester):
         self.strat.zero_data()
         return current_dict_dfs, dict_score_dfs
 
-    def handle_remaining_positons(self, current_dict_dfs, positions):
+    def handle_remaining_positions(self, current_dict_dfs, positions):
         for pos in positions:
             if pos.is_active:
                 pos.is_active = False
