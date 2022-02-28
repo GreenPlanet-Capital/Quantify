@@ -16,8 +16,8 @@ class IndicatorManager:
                         dict_of_dataframes: Dict[str, DataFrame]):
 
         for ticker in tqdm(self.list_of_tickers, desc=f"{sid_strategy}: {name_strategy} "):
-            # FIXME: An arbitrary price of 80 was chosen here
-            if dict_of_dataframes[ticker]['close'].mean() < 80:
+            # FIXME: An arbitrary minimum dollar volume of $25M was chosen here
+            if (dict_of_dataframes[ticker]['volume']*dict_of_dataframes[ticker]['close']).mean() > 35_000_000:
                 dict_of_dataframes[ticker][['score', 'buy/sell signal']] = 0
                 continue
             self.retrieve_single_score(ticker, dict_of_dataframes, score_func)
