@@ -36,6 +36,10 @@ class Macd_Rsi_Boll(BaseStrategy):
         input_df['rsi_health_score'] = input_df.apply(lambda row: IndicUtils.account_for_buy_sell_signal(row['shifted rsi']/100, row['buy/sell signal']), axis=1)
         input_df['rsi_score'] = input_df.apply(lambda row: IndicUtils.account_for_buy_sell_signal(row['zc_shifted_rsi']/100, row['buy/sell signal']), axis=1)
         input_df['rsi_score'] = input_df['rsi_score'].fillna(0)
+        
+        # Focusing BB to only the middle range of 0.4 to 0.6
+        # TODO
+        
         # Calculate score
         score_df = DataFrame()
 
