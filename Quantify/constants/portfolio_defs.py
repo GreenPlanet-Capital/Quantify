@@ -1,3 +1,0 @@
-
-class Portfolio:
-    pass

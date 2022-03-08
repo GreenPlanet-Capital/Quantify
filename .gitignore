@@ -147,3 +147,4 @@ env/
 data/
 test.profile
 DataManager/
+!setup.cfg
