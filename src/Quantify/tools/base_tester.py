@@ -50,5 +50,5 @@ class BaseTester:
 
     def execute_strat(
         self, graph_positions=False, print_terminal=False
-    ) -> Optional[Union[List[Opportunity], List[Position], None]]:
-        return None
+    ) -> Union[List[Opportunity], List[Position]]:
+        pass

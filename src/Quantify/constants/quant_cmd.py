@@ -42,7 +42,7 @@ listings of documented functions, miscellaneous topics, and undocumented
 functions respectively.
 """
 import string, sys
-from typing import Any, NoReturn, Optional, Union
+from typing import Any, Callable, List, Optional
 
 __all__ = ["Cmd"]
 
@@ -119,7 +119,7 @@ class Cmd:
                 self.intro = intro
             if self.intro:
                 self.stdout.write(str(self.intro) + "\n")
-            stop = None
+            stop: Optional[Any] = None
             while not stop:
                 stop = self.hax()
             self.postloop()
@@ -277,6 +277,7 @@ class Cmd:
             endidx = readline.get_endidx() - stripped
             if begidx > 0:
                 cmd, args, foo = self.parseline(line)
+                compfunc: Callable[..., Any]
                 if cmd == "":
                     compfunc = self.completedefault
                 else:

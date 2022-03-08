@@ -1,11 +1,13 @@
 import copy
 import os
 import shutil
+
+from pandas import DataFrame
 from Quantify.tools.base_tester import BaseTester
 from Quantify.tools.live_tester import LiveTester
 from Quantify.tools.forward_tester import ForwardTester
 from Quantify.constants.utils import combine, n_wise
-from typing import Iterable, List
+from typing import Any, Dict, Iterable, List, Optional, Type, Union
 from Quantify.positions.opportunity import Opportunity
 from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
@@ -37,7 +39,7 @@ class MyPrompt(Cmd):
     )
     SHOW_COMMANDS = ["strats", "set_data", "results", "tracked", "untracked"]
     RUN_COMPLETES = ["live_test", "forward_test"]
-    SET_DATA = {
+    SET_DATA: Dict[str, Any] = {
         "timestamps": {
             "CURRENT_START_TIMESTAMP": TODAY,
             "CURRENT_END_TIMESTAMP": TODAY,
@@ -59,7 +61,7 @@ class MyPrompt(Cmd):
     STRAT_IDS_AND_NAMES = STRAT_IDS + STRAT_NAMES
     TIMESTAMP_COMPLETIONS = ["start_timestamp", "end_timestamp"]
     EXCHANGE_NAMES = ["NYSE", "NASDAQ", "OTC", "ARCA", "AMEX", "BATS"]
-    RESULTS: List[Opportunity] = [
+    RESULTS: Union[List[Opportunity], List[Position]] = [
         Opportunity(
             strategy_id=0,
             timestamp=datetime(1, 1, 1),
@@ -88,12 +90,12 @@ class MyPrompt(Cmd):
             metadata={"score": 45},
         ),
     ]
-    TRACKED: List[Position] = dict()
+    TRACKED: Dict[str, Position] = dict()
     CUSTOM_PROMPT_NEEDED = False
     CUSTOM_PROMPT_MSG = ""
     HAS_STUFF_CHANGED = True
-    CURRENT_DICT_OF_DFS = dict()
-    CURRENT_LIST_OF_TICKERS = []
+    CURRENT_DICT_OF_DFS: Dict[str, DataFrame] = dict()
+    CURRENT_LIST_OF_TICKERS: List[str] = []
 
     def do_show(self, args):
         if not args:
@@ -158,7 +160,7 @@ class MyPrompt(Cmd):
     def do_live_test(self, args):
         self.run_tester(args, LiveTester)
 
-    def run_tester(self, args, tester: BaseTester):
+    def run_tester(self, args, tester_func: Type[BaseTester]):
         DEFAULT_FLAG = False
         if args == "set_flags":
             DEFAULT_FLAG = True
@@ -190,7 +192,7 @@ class MyPrompt(Cmd):
             print("No dataframes were found for the given dates\n")
             return
 
-        tester = tester(
+        tester = tester_func(
             list_of_final_symbols=self.CURRENT_LIST_OF_TICKERS,
             dict_of_dfs=self.CURRENT_DICT_OF_DFS,
             exchangeName=self.SET_DATA["exchangeName"],
@@ -343,7 +345,7 @@ class MyPrompt(Cmd):
         INTEGRITY = True
         msg = ""
 
-        date_range = None
+        date_range: List[Any]
         if self.SET_DATA["strat"]:
             strat: BaseStrategy = self.SET_DATA["strat"]
             dmgr = data_manager.DataManager()
@@ -625,10 +627,10 @@ class MyPrompt(Cmd):
 
         self.print_opp_objects(position_list)
 
-    def print_opp_objects(self, iterable_of_objects: Iterable, prepend=[]):
+    def print_opp_objects(self, iterable_of_objects: Union[Iterable[Position], Iterable[Opportunity]], prepend=[]):
         out_string_list = []
         out_string = ""
-        pos: Position
+        pos: Union[Position, Opportunity]
         for i, pos in enumerate(iterable_of_objects):
             prepend_list = []
             if prepend:
@@ -679,14 +681,14 @@ class MyPrompt(Cmd):
     def postloop(self):
         print
 
-    def postcmd(self, stop: bool, line: str) -> bool:
+    def postcmd(self, stop: Optional[Any], line: Optional[Any]) -> Optional[Any]:
         if self.CUSTOM_PROMPT_NEEDED:
             self.prompt = "(q)> " + self.CUSTOM_PROMPT_MSG
         else:
             self.prompt = "(q)> "
         return super().postcmd(stop, line)
 
-    def precmd(self, line: str) -> str:
+    def precmd(self, line: str) -> Optional[Any]:
         if self.CUSTOM_PROMPT_NEEDED:
             line = self.CUSTOM_PROMPT_MSG + line
             self.CUSTOM_PROMPT_NEEDED = False

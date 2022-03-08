@@ -14,7 +14,7 @@ class Opportunity:
         exchangeName,
         order_type,
         default_price,
-        metadata: Dict[str, str],
+        metadata: Dict[str, Any],
     ) -> None:
         self.strategy_id = strategy_id
         self.timestamp = timestamp
