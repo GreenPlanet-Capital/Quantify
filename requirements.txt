@@ -1,4 +1,4 @@
-git+https://github.com/GreenPlanet-Capital/DataManager@install_b
+DataManager @ git+https://github.com/GreenPlanet-Capital/DataManager@install_b
 matplotlib
 tqdm
 prettytable
