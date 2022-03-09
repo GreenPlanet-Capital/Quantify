@@ -1,6 +1,4 @@
 from typing import List, Dict
-
-import pandas as pd
 from pandas import DataFrame
 from tqdm import tqdm
 

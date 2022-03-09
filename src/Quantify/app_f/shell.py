@@ -99,9 +99,9 @@ class MyPrompt(Cmd):
 
     def do_show(self, args):
         if not args:
-            print(f"show needs an argument")
+            print("show needs an argument")
             return
-        if not args in self.SHOW_COMMANDS:
+        if args not in self.SHOW_COMMANDS:
             print(f"{args} is not a valid argument to show")
             return
 
@@ -137,9 +137,9 @@ class MyPrompt(Cmd):
 
     def do_run(self, args):
         if not args:
-            print(f"run needs an argument")
+            print("run needs an argument")
             return
-        if not args in self.RUN_COMPLETES:
+        if args not in self.RUN_COMPLETES:
             print(f"{args} is not a valid argument to run")
             return
 
@@ -173,7 +173,7 @@ class MyPrompt(Cmd):
             if DEFAULT_FLAG:
                 print()
                 print(msg)
-            print(f"Cancelling test\n")
+            print("Cancelling test\n")
             return
         if self.HAS_STUFF_CHANGED:
             list_of_final_symbols, dict_of_dfs = app.setup_data(
@@ -188,7 +188,7 @@ class MyPrompt(Cmd):
             self.HAS_STUFF_CHANGED = False
 
         if len(self.CURRENT_LIST_OF_TICKERS) == 0:
-            print(f"Cancelling test...")
+            print("Cancelling test...")
             print("No dataframes were found for the given dates\n")
             return
 
@@ -230,11 +230,11 @@ class MyPrompt(Cmd):
     def do_strat(self, args):
         if not args:
             if not self.SET_DATA["strat"]:
-                print(f"Needs a strategy argument")
+                print("Needs a strategy argument")
                 return self.run_subcommand("strat")
             else:
                 return
-        if not args in self.STRAT_IDS_AND_NAMES:
+        if args not in self.STRAT_IDS_AND_NAMES:
             print(f"{args} is not a valid argument to strat")
             return
 
@@ -369,7 +369,8 @@ class MyPrompt(Cmd):
             if not (len(date_range) >= strat.length_of_data_needed):
                 print()
                 print(
-                    f'TIMESTAMPS: start_timestamp was not suffiencient for strategy "{strat.name}"\nNeeds at least {strat.length_of_data_needed} {strat.timeframe.datatype} units'
+                    f'TIMESTAMPS: start_timestamp was not suffiencient for strategy "{strat.name}"\n\
+                    Needs at least {strat.length_of_data_needed} {strat.timeframe.datatype} units'
                 )
                 assumed_start = (
                     self.SET_DATA["timestamps"]["CURRENT_END_TIMESTAMP"]
@@ -462,7 +463,7 @@ class MyPrompt(Cmd):
         list_pickle_file_names = os.listdir(paths.tracked_trades_path)
         for pickle_file_name in list_pickle_file_names:
             pickle_file_name = os.path.splitext(pickle_file_name)[0]
-            if not pickle_file_name in self.TRACKED:
+            if pickle_file_name not in self.TRACKED:
                 self.TRACKED[pickle_file_name] = Position.depickle(
                     paths.tracked_trades_path, pickle_file_name
                 )
@@ -500,7 +501,7 @@ class MyPrompt(Cmd):
                 try:
                     start_datetime = datetime.strptime(user_inp, "%Y-%m-%d")
                     break
-                except:
+                except Exception:
                     print("INVALID FORMAT: Enter date(yyyy-mm-dd)")
 
         if END_FLAG:
@@ -516,7 +517,7 @@ class MyPrompt(Cmd):
                 try:
                     end_datetime = datetime.strptime(user_inp, "%Y-%m-%d")
                     break
-                except:
+                except Exception:
                     print("INVALID FORMAT: Enter date(yyyy-mm-dd)")
         print()
         timestamps_dict["CURRENT_START_TIMESTAMP"] = start_datetime
@@ -627,7 +628,11 @@ class MyPrompt(Cmd):
 
         self.print_opp_objects(position_list)
 
-    def print_opp_objects(self, iterable_of_objects: Union[Iterable[Position], Iterable[Opportunity]], prepend=[]):
+    def print_opp_objects(
+        self,
+        iterable_of_objects: Union[Iterable[Position], Iterable[Opportunity]],
+        prepend=[],
+    ):
         out_string_list = []
         out_string = ""
         pos: Union[Position, Opportunity]
@@ -646,7 +651,7 @@ class MyPrompt(Cmd):
 
     def do_untrack(self, args):
         self.check_tracked_integrity()
-        if not args and not args in self.TRACKED:
+        if not args and args not in self.TRACKED:
             print(
                 'untrack needs a uuid.\nUse "show untracked" to see a list of tracked trades'
             )

@@ -5,7 +5,6 @@ import pandas as pd
 from tqdm import tqdm
 from Quantify.constants.utils import find_loc
 from Quantify.monitors.trailing_monitor import TrailingMonitor
-from Quantify.positions.opportunity import Opportunity
 from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
 from Quantify.tools.base_tester import BaseTester
@@ -138,7 +137,7 @@ class ForwardTester(BaseTester):
             to_graph = pd.concat(
                 [
                     self.dict_of_dfs[ticker][["close", "timestamp"]][
-                        min_start_index - 1 :
+                        min_start_index - 1:
                     ],
                     score_df[["score", "health_score"]],
                 ],

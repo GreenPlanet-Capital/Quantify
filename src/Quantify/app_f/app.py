@@ -1,16 +1,14 @@
-import os
 import numpy as np
 import pandas as pd
-
-pd.options.plotting.backend = "plotly"
 from Quantify.tools.forward_tester import ForwardTester
-from Quantify.tools.live_tester import LiveTester
 from Quantify.tools.base_tester import BaseTester
 from DataManager.utils.timehandler import TimeHandler
 from DataManager.datamgr import data_manager
 from datetime import datetime
 from Quantify.constants.strategy_defs import get_strategy_definitons
 from Quantify.strats.base_strategy import BaseStrategy
+
+pd.options.plotting.backend = "plotly"
 
 np.seterr(invalid="raise")
 
@@ -81,7 +79,7 @@ def main():
     )
 
     if len(list_of_final_symbols) == 0:
-        print(f"Cancelling test...\n")
+        print("Cancelling test...\n")
         print("No dataframes were found for the given dates")
         return
 

@@ -41,8 +41,9 @@ The data members `self.doc_header', `self.misc_header', and
 listings of documented functions, miscellaneous topics, and undocumented
 functions respectively.
 """
-import string, sys
-from typing import Any, Callable, List, Optional
+import string
+import sys
+from typing import Any, Callable, Optional
 
 __all__ = ["Cmd"]
 

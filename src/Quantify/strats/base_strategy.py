@@ -1,7 +1,5 @@
-from typing import Any, List, Dict, Optional
-
+from typing import Any, List, Dict
 from pandas import DataFrame
-
 from DataManager.utils.timehandler import TimeHandler
 from Quantify.constants.timeframe import TimeFrame
 from Quantify.indicators.indicator_manager import IndicatorManager

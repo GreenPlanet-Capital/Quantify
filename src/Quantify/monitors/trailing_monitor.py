@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 from DataManager.utils.timehandler import TimeHandler
 from pandas import DataFrame

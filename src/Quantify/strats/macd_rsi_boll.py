@@ -1,7 +1,5 @@
 from pandas import DataFrame
 import pandas as pd
-
-pd.options.mode.chained_assignment = None  # default='warn'
 from Quantify.indicators.utils import IndicUtils as IndicUtils
 from Quantify.constants import utils as generic_utils
 from Quantify.indicators.indicator_manager import IndicatorManager
@@ -10,6 +8,8 @@ from Quantify.indicators.macd import Macd
 from Quantify.indicators.rsi import Rsi
 from Quantify.indicators.bollinger_bands import BollingerBands
 from Quantify.strats.base_strategy import BaseStrategy
+
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 class Macd_Rsi_Boll(BaseStrategy):
