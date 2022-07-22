@@ -7,6 +7,7 @@ from DataManager.datamgr import data_manager
 from datetime import datetime
 from Quantify.constants.strategy_defs import get_strategy_definitons
 from Quantify.strats.base_strategy import BaseStrategy
+from Quantify.tools.live_tester import LiveTester
 
 pd.options.plotting.backend = "plotly"
 
@@ -54,7 +55,7 @@ def setup_data(
     start_timestamp = TimeHandler.get_string_from_datetime(start_timestamp)
     end_timestamp = TimeHandler.get_string_from_datetime(end_timestamp)
     dict_of_dfs = this_manager.get_stock_data(
-        start_timestamp, end_timestamp, api="Alpaca", fill_data=5
+        start_timestamp, end_timestamp, api="Alpaca"
     )
     list_of_final_symbols = this_manager.list_of_symbols
     return list_of_final_symbols, dict_of_dfs
@@ -63,11 +64,11 @@ def setup_data(
 def main():
     # Fetch data for entire test frame & manage slices
     start_timestamp = datetime(2021, 7, 6)
-    end_timestamp = datetime(2022, 2, 22)
-    exchangeName = "NYSE"
+    end_timestamp = datetime(2022, 7, 20)
+    exchangeName = "NASDAQ"
     limit = None
     update_before = False
-    n_best = 30
+    n_best = 5
     percent_l = 0.5
 
     setup_data(
@@ -85,18 +86,18 @@ def main():
 
     strat: BaseStrategy = strat_id_to_class[1]  # Set strategy here
 
-    tester_f: BaseTester = ForwardTester(
-        list_of_final_symbols,
-        dict_of_dfs,
-        exchangeName,
-        strat,
-        n_best,
-        percent_l=percent_l,
-    )
-    tester_f.execute_strat(graph_positions=True, print_terminal=True)
+    # tester_f: BaseTester = ForwardTester(
+    #     list_of_final_symbols,
+    #     dict_of_dfs,
+    #     exchangeName,
+    #     strat,
+    #     n_best,
+    #     percent_l
+    # )
+    # tester_f.execute_strat(graph_positions=True, print_terminal=True)
 
-    # tester_l: BaseTester = LiveTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best)
-    # tester_l.execute_strat(print_terminal=True)
+    tester_l: BaseTester = LiveTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l)
+    tester_l.execute_strat(print_terminal=True)
 
     print()
 

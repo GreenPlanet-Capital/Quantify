@@ -37,7 +37,7 @@ class BaseStrategy:
         lengths = [len(df) for df in dict_of_dataframes.values()]
         max_rows = max(lengths)
         min_rows = min(lengths)
-        # TODO Fix Data Manager
+
         assert all(
             [max_rows == len(df) for df in dict_of_dataframes.values()]
         ), "Lengths Mismatch: Not all dataframes in the dictionary are of the same length"

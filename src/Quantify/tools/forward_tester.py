@@ -64,6 +64,11 @@ class ForwardTester(BaseTester):
 
         self.handle_remaining_positions(current_dict_dfs, positions)
 
+        total_profit = 0
+        for pos in positions:
+            total_profit += (pos.default_price - pos.exit_price) * pos.order_type
+        print(f"Total PnL: {round(total_profit, 2)}")
+
         if graph_positions:
             self.graph_positions(dict_score_dfs, min_start_index)
 
