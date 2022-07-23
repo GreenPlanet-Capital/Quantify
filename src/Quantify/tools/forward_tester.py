@@ -142,7 +142,7 @@ class ForwardTester(BaseTester):
             to_graph = pd.concat(
                 [
                     self.dict_of_dfs[ticker][["close", "timestamp"]][
-                        min_start_index - 1:
+                        min_start_index - 1 :
                     ],
                     score_df[["score", "health_score"]],
                 ],

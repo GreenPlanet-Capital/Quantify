@@ -29,7 +29,7 @@ class BollingerBands(BaseIndicator):
         boll_bands["lower_bb"] = lower_bands
 
         boll_bands["diff_bb"] = 1 - normalize_values(
-            upper_bands[-self.lookback_bb:] - lower_bands[-self.lookback_bb:], 0, 1
+            upper_bands[-self.lookback_bb :] - lower_bands[-self.lookback_bb :], 0, 1
         )
         boll_bands["sma_bb"] = simple_moving_avg
 

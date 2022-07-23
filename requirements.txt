@@ -1,5 +1,7 @@
-DataManager @ git+https://github.com/GreenPlanet-Capital/DataManager@install_b
+DataManager @ git+https://github.com/GreenPlanet-Capital/DataManager@marketstore
 matplotlib
 tqdm
 prettytable
 plotly
+backtesting==0.3.3
+ta==0.10.1
