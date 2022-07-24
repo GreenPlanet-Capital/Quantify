@@ -35,6 +35,13 @@ def buy_sell_mva(x):
     return 0
 
 
+def buy_sell_rsi(x):
+    if x > 50:
+        return -1
+    elif x <= 50:
+        return 1
+
+
 def find_loc(df, dates):
     marks = []
     for date in dates:

@@ -148,3 +148,4 @@ data/
 test.profile
 DataManager/
 !setup.cfg
+graph_files/*.html
