@@ -96,7 +96,9 @@ def main():
     # )
     # tester_f.execute_strat(graph_positions=True, print_terminal=True)
 
-    tester_l: BaseTester = LiveTester(list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l)
+    tester_l: BaseTester = LiveTester(
+        list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
+    )
     tester_l.execute_strat(print_terminal=True)
 
     print()

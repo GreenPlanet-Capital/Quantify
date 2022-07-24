@@ -5,3 +5,4 @@ prettytable
 plotly
 backtesting==0.3.3
 ta==0.10.1
+statsmodels
