@@ -1,15 +1,11 @@
-from tarfile import LENGTH_PREFIX
 from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from backtesting.test import SMA, GOOG
-from numpy import ndarray
 import pandas as pd
 import ta
 import numpy as np
-
 from Quantify.app_f.get_data import *
 from Quantify.constants.utils import buy_sell_mva, normalize_values
-from Quantify.indicators.utils import IndicUtils
 
 
 class MacdRsi(Strategy):
@@ -46,6 +42,12 @@ class MacdRsi(Strategy):
             1,
         )
 
+        self.upper_boll = pd.Series(self.I(ta.volatility.bollinger_hband, price, window_length, plot=False))
+        self.lower_boll = pd.Series(self.I(ta.volatility.bollinger_lband, price, window_length, plot=False))
+        self.diff_boll = 1 - normalize_values(
+            self.upper_boll - self.lower_boll, 0, 1
+        )
+
         self.buy_sell_signal = self.macd.apply(buy_sell_mva)
 
         self.rsi_score = np.where(
@@ -53,7 +55,9 @@ class MacdRsi(Strategy):
         )
 
         self.pre_score = (
-            0.3 * self.rsi_score + 0.35 * self.macd_diff + 0.35 * self.normalized_macd
+                0.50 * self.rsi_score
+                + 0.35 * self.macd_diff * self.normalized_macd
+                + 0.15 * self.diff_boll
         )
         self.pre_score = normalize_values(
             self.pre_score,
@@ -63,7 +67,7 @@ class MacdRsi(Strategy):
         self.score = self.I(lambda: self.pre_score, name="Score")
 
         self.health_score = 0.60 * self.rsi_score + 0.40 * (
-            1 - self.normalized_macd.replace({0: np.nan})
+                1 - self.normalized_macd.replace({0: np.nan})
         ).fillna(0)
         self.health_score = normalize_values(
             self.health_score,
@@ -71,13 +75,11 @@ class MacdRsi(Strategy):
             1,
         )
         self.health_score = self.I(lambda: self.health_score, name="Health Score")
-        self.high_score = np.full(shape=len(self.data), fill_value=0.50)
+        self.high_score = np.full(shape=len(self.data), fill_value=0.90)
         self.low_score = np.full(shape=len(self.data), fill_value=0.10)
 
     def next(self):
-        # print(self.position)
         if crossover(self.score, self.high_score) and not self.position.is_long:
-            print(self.buy_sell_signal.iloc[-1])
             if self.buy_sell_signal.iloc[-1] == 1:
                 print("buy")
                 self.buy(size=10)
@@ -89,17 +91,19 @@ class MacdRsi(Strategy):
             self.trades[-1].close()
 
 
-# list_of_final_symbols, dict_of_dfs = get_data()
+if __name__ == "__main__":
+    list_of_final_symbols, dict_of_dfs = get_data()
 
-# print(f"{list_of_final_symbols=}")
+    print(f"{list_of_final_symbols=}")
 
-# ticker, TICKER_DF = list(dict_of_dfs.items())[0] # pick one stock
+    ticker, TICKER_DF = list(dict_of_dfs.items())[0]  # pick one stock
 
-# TICKER_DF = TICKER_DF.rename(columns = {'open': 'Open', 'high': 'High', 'low': 'Low', 'close': 'Close', 'volume': 'Volume'})
+    TICKER_DF = TICKER_DF.rename(columns={'open': 'Open', 'high': 'High', 'low': 'Low',
+                                          'close': 'Close', 'volume': 'Volume'})
 
-# TICKER_DF = TICKER_DF.set_index(pd.to_datetime(TICKER_DF['timestamp'])).drop('timestamp', axis=1)
+    TICKER_DF = TICKER_DF.set_index(pd.to_datetime(TICKER_DF['timestamp'])).drop('timestamp', axis=1)
 
-bt = Backtest(GOOG, MacdRsi, commission=0.002, exclusive_orders=True)
-stats = bt.run()
-# print(stats)
-bt.plot()
+    bt = Backtest(TICKER_DF, MacdRsi, commission=0.002, exclusive_orders=True)
+    stats = bt.run()
+    # print(stats)
+    bt.plot()
