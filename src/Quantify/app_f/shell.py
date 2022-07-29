@@ -176,7 +176,7 @@ class MyPrompt(Cmd):
             print("Cancelling test\n")
             return
         if self.HAS_STUFF_CHANGED:
-            list_of_final_symbols, dict_of_dfs = app.setup_data(
+            list_of_final_symbols, dict_of_dfs = app.get_data(
                 start_timestamp=self.SET_DATA["timestamps"]["CURRENT_START_TIMESTAMP"],
                 end_timestamp=self.SET_DATA["timestamps"]["CURRENT_END_TIMESTAMP"],
                 limit=self.SET_DATA["limit"],

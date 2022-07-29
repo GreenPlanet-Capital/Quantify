@@ -4,7 +4,7 @@ from backtesting.test import SMA, GOOG
 import pandas as pd
 import ta
 import numpy as np
-from Quantify.app_f.get_data import *
+from Quantify.app_f.data_retrieval import get_specific_data
 from Quantify.constants.utils import buy_sell_mva, normalize_values, buy_sell_rsi
 from tqdm import tqdm
 
@@ -117,7 +117,7 @@ class MacdRsiBoll(Strategy):
 
 
 if __name__ == "__main__":
-    list_of_final_symbols, dict_of_dfs = get_data()
+    list_of_final_symbols, dict_of_dfs = get_specific_data(fetch_data=False)
     list_all_bt = []
     total_equity_return = 0
 
