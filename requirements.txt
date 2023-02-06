@@ -1,4 +1,4 @@
-DataManager @ git+https://github.com/GreenPlanet-Capital/DataManager@marketstore
+DataManager @ git+ssh://git@github.com/GreenPlanet-Capital/DataManager@marketstore
 matplotlib
 tqdm
 prettytable
