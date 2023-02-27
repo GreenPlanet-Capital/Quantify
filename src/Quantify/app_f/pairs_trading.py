@@ -36,12 +36,12 @@ class SmaCross(Strategy):
 
     def next(self):
         my_price = (
-            self.data.Close[-self.beta_lookback:]
+            self.data.Close[-self.beta_lookback :]
             if len(self.data.Close) >= self.beta_lookback
             else self.data.Close
         )
         other_tic_price = (
-            self.data.df[self.other_symbol].iloc[-self.beta_lookback:]
+            self.data.df[self.other_symbol].iloc[-self.beta_lookback :]
             if len(self.data.Close) >= self.beta_lookback
             else self.data.df[self.other_symbol]
         )

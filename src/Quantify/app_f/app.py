@@ -2,10 +2,11 @@ import numpy as np
 import pandas as pd
 from Quantify.app_f.data_retrieval import get_specific_data
 from Quantify.tools.base_tester import BaseTester
-from datetime import datetime
 from Quantify.constants.strategy_defs import get_strategy_definitons
 from Quantify.strats.base_strategy import BaseStrategy
 from Quantify.tools.live_tester import LiveTester
+from Quantify.tools.forward_tester import ForwardTester
+
 
 pd.options.plotting.backend = "plotly"
 

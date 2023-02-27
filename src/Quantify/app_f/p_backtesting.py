@@ -60,9 +60,9 @@ class MacdRsiBoll(Strategy):
         )
 
         self.pre_score = (
-                0.30 * self.rsi_normalized
-                + 0.35 * (self.macd_diff * self.normalized_macd) ** 0.5
-                + 0.35 * self.diff_boll
+            0.30 * self.rsi_normalized
+            + 0.35 * (self.macd_diff * self.normalized_macd) ** 0.5
+            + 0.35 * self.diff_boll
         )
         self.pre_score = normalize_values(
             self.pre_score,
@@ -72,7 +72,7 @@ class MacdRsiBoll(Strategy):
         self.score = self.I(lambda: self.pre_score, name="Score")
 
         self.health_score = 0.60 * self.rsi_normalized + 0.40 * (
-                1 - self.normalized_macd.replace({0: np.nan})
+            1 - self.normalized_macd.replace({0: np.nan})
         ).fillna(0)
         self.health_score = normalize_values(
             self.health_score,
@@ -106,7 +106,7 @@ class MacdRsiBoll(Strategy):
                 t.close()
 
         for t in self.trades:
-            health_series = pd.Series(self.health_score[t.entry_bar:])
+            health_series = pd.Series(self.health_score[t.entry_bar :])
             current_peak_change_health = health_series.cummax()
             trailing_stop_health = current_peak_change_health * (1 - 0.30)
             exit_signal = health_series < trailing_stop_health

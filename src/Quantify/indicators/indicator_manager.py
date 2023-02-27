@@ -17,7 +17,6 @@ class IndicatorManager:
         score_func,
         dict_of_dataframes: Dict[str, DataFrame],
     ):
-
         for ticker in tqdm(
             self.list_of_tickers, desc=f"{sid_strategy}: {name_strategy} "
         ):

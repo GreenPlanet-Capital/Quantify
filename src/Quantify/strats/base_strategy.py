@@ -8,7 +8,6 @@ from Quantify.positions.opportunity import Opportunity
 
 
 class BaseStrategy:
-
     indicator_manager: IndicatorManager
     list_of_tickers: List[str]
     dict_of_dataframes: Dict[str, DataFrame]
@@ -39,7 +38,7 @@ class BaseStrategy:
         min_rows = min(lengths)
 
         assert all(
-            [max_rows == len(df) for df in dict_of_dataframes.values()]
+            max_rows == row_len for row_len in lengths
         ), "Lengths Mismatch: Not all dataframes in the dictionary are of the same length"
         assert (
             min_rows >= self.timeframe.length
