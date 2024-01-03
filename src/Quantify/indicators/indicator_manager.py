@@ -20,11 +20,11 @@ class IndicatorManager:
         for ticker in tqdm(
             self.list_of_tickers, desc=f"{sid_strategy}: {name_strategy} "
         ):
-            # FIXME: An arbitrary minimum dollar volume of $25M was chosen here
+            # FIXME: An arbitrary minimum dollar volume of $25M was chosen here (also penny stocks <= $5 ignored)
             if (
                 dict_of_dataframes[ticker]["volume"]
                 * dict_of_dataframes[ticker]["close"]
-            ).mean() > 35_000_000:
+            ).mean() > 35_000_000 or dict_of_dataframes[ticker]["close"].iloc[-1] <= 5:
                 dict_of_dataframes[ticker][["score", "buy/sell signal"]] = 0
                 continue
             self.retrieve_single_score(ticker, dict_of_dataframes, score_func)

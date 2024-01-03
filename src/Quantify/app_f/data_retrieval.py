@@ -5,7 +5,7 @@ from DataManager.utils.timehandler import TimeHandler
 
 def get_specific_data(list_specific_stocks=None, fetch_data=True):
     start_timestamp = datetime(2022, 8, 1)
-    end_timestamp = datetime(2023, 2, 26)
+    end_timestamp = datetime(2023, 5, 5)
     exchangeName = "NASDAQ"
     limit = None
     update_before = False
@@ -50,5 +50,5 @@ def get_data(
                 stock, start_dt, end_dt
             )
 
-    list_of_final_symbols = this_manager.list_of_symbols or list_specific_stocks
+    list_of_final_symbols = list_specific_stocks or this_manager.list_of_symbols
     return list_of_final_symbols, dict_of_dfs

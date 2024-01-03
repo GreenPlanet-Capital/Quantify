@@ -41,7 +41,7 @@ def main():
     n_best = 5
     percent_l = 0.5
 
-    list_of_final_symbols, dict_of_dfs = get_specific_data(fetch_data=True)
+    list_of_final_symbols, dict_of_dfs = get_specific_data(fetch_data=False)
 
     if len(list_of_final_symbols) == 0:
         print("Cancelling test...\n")
@@ -50,20 +50,15 @@ def main():
 
     strat: BaseStrategy = strat_id_to_class[1]  # Set strategy here
 
-    # tester_f: BaseTester = ForwardTester(
-    #     list_of_final_symbols,
-    #     dict_of_dfs,
-    #     exchangeName,
-    #     strat,
-    #     n_best,
-    #     percent_l
-    # )
-    # tester_f.execute_strat(graph_positions=True, print_terminal=True)
-
-    tester_l: BaseTester = LiveTester(
+    tester_f: BaseTester = ForwardTester(
         list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
     )
-    tester_l.execute_strat(print_terminal=True)
+    tester_f.execute_strat(graph_positions=True, print_terminal=True)
+
+    # tester_l: BaseTester = LiveTester(
+    #     list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
+    # )
+    # tester_l.execute_strat(print_terminal=True)
 
     print()
 
