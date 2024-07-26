@@ -3,11 +3,13 @@ from pandas import DataFrame
 from DataManager.utils.timehandler import TimeHandler
 import pandas as pd
 from tqdm import tqdm
-from Quantify.constants.utils import find_loc
+from Quantify.constants.utils import find_loc, normalize_values
 from Quantify.monitors.trailing_monitor import TrailingMonitor
+from Quantify.positions.opportunity import Opportunity
 from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
 from Quantify.tools.base_tester import BaseTester
+from pprint import pprint
 
 
 class ForwardTester(BaseTester):
@@ -25,7 +27,7 @@ class ForwardTester(BaseTester):
         )
 
     def execute_strat(
-        self, graph_positions=False, print_terminal=False
+        self, graph_positions=False, print_terminal=False, amount_per_pos=100
     ) -> List[Position]:
         self.print_terminal = print_terminal
         min_start_index = self.strat.timeframe.length
@@ -40,9 +42,8 @@ class ForwardTester(BaseTester):
         self.strat.instantiate_indicator_mgr()
 
         opps = self.strat.run()
-        positions: List[Position] = [
-            Position(op) for op in self.get_good_mix_of_opps(opps)
-        ]
+        good_opps, last_op_idx = self.get_good_mix_of_opps(opps, self.num_top)
+        positions: List[Position] = [Position(op) for op in good_opps]
 
         if print_terminal:
             print("-" * 50)
@@ -55,7 +56,7 @@ class ForwardTester(BaseTester):
         assert min_df_len >= min_start_index
 
         current_dict_dfs, dict_score_dfs = self.advance_forward(
-            min_start_index, min_df_len, positions
+            min_start_index, min_df_len, positions, opps, last_op_idx
         )
 
         if print_terminal:
@@ -64,20 +65,50 @@ class ForwardTester(BaseTester):
 
         self.handle_remaining_positions(current_dict_dfs, positions)
 
-        total_profit = 0
-        for pos in positions:
-            total_profit += (pos.default_price - pos.exit_price) * pos.order_type
-        print(f"Total PnL: {round(total_profit, 2)}")
+        stats = self.calculate_stats(positions, opps, amount_per_pos)
+        pprint(stats)
 
         if graph_positions:
             self.graph_positions(dict_score_dfs, min_start_index)
 
         return positions
 
+    def calculate_stats(
+        self, positions: List[Position], opps: List[Opportunity], amount_per_pos: float
+    ) -> float:
+        stats = dict()
+
+        total_profit = 0
+        opps_scores = [op.metadata["score"] for op in opps]
+        opps_scores = normalize_values(pd.Series(opps_scores), 0, 1).values
+
+        opps_scores_dt = {op.ticker: score for op, score in zip(opps, opps_scores)}
+
+        for pos in positions:
+            shares = amount_per_pos / pos.default_price
+            total_profit += (
+                (pos.exit_price - pos.default_price)
+                * pos.order_type
+                * shares
+                * opps_scores_dt[pos.ticker]
+            )
+
+        stats["pnl"] = total_profit
+        stats["total_investment"] = amount_per_pos * len(positions)
+        stats["port_return"] = total_profit / stats["total_investment"]
+
+        return stats
+
     def advance_forward(
-        self, start_index, end_index, positions
+        self,
+        start_index,
+        end_index,
+        positions: List[Position],
+        opps: List[Opportunity],
+        cur_opps_idx: int,
     ) -> Tuple[Dict[str, DataFrame], Dict[str, DataFrame]]:
         current_dict_dfs, dict_score_dfs = self.dict_of_dfs, dict()
+
         self.strat.set_data(
             list_of_tickers=self.list_of_final_symbols,
             dict_of_dataframes=current_dict_dfs,
@@ -86,13 +117,16 @@ class ForwardTester(BaseTester):
         health_monitor = TrailingMonitor(
             self.strat.sid, "Trailing Health Check", self.strat
         )
-        dict_score_dfs = health_monitor.multiple_health_check(positions)
+        dict_score_dfs: Dict[str, Tuple[pd.DataFrame, Position]] = (
+            health_monitor.multiple_health_check(positions)
+        )
+
+        num_active = self.num_top
 
         for i in tqdm(
             range(start_index, end_index),
-            desc=f"Forward Testing for {end_index + 1} days",
+            desc=f"Forward Testing for {end_index - start_index + 1} days",
         ):
-            any_is_active = False
             for ticker, tuple_df_pos in dict_score_dfs.items():
                 score_df, this_pos = tuple_df_pos
                 if (
@@ -111,15 +145,27 @@ class ForwardTester(BaseTester):
 
                     this_pos.exit_timestamp = exit_timestamp
                     this_pos.exit_price = exit_price
-                any_is_active = any_is_active or this_pos.is_active
 
-            if not any_is_active:
-                break
+                    num_active -= 1
+
+            while cur_opps_idx < len(opps) - 1 and num_active < self.num_top:
+                next_good_opps, cur_opps_idx = self.get_good_mix_of_opps(
+                    opps[cur_opps_idx + 1 :], self.num_top - num_active
+                )
+                for op in next_good_opps:
+                    pos = Position(op)
+                    pos.default_price = current_dict_dfs[pos.ticker].loc[i]["close"]
+                    positions.append(pos)
+
+                    dict_score_dfs[pos.ticker] = (health_monitor.health_check(pos), pos)
+                    num_active += 1
 
         self.strat.zero_data()
         return current_dict_dfs, dict_score_dfs
 
-    def handle_remaining_positions(self, current_dict_dfs, positions):
+    def handle_remaining_positions(
+        self, current_dict_dfs: dict[str, pd.DataFrame], positions: List[Position]
+    ):
         for pos in positions:
             if pos.is_active:
                 pos.is_active = False
@@ -136,7 +182,11 @@ class ForwardTester(BaseTester):
             if self.print_terminal:
                 print(pos)
 
-    def graph_positions(self, dict_score_dfs, min_start_index):
+    def graph_positions(
+        self,
+        dict_score_dfs: Dict[str, Tuple[pd.DataFrame, Position]],
+        min_start_index: int,
+    ):
         for ticker, tuple_df_pos in dict_score_dfs.items():
             score_df, this_pos = tuple_df_pos
             to_graph = pd.concat(

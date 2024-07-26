@@ -4,8 +4,8 @@ from DataManager.utils.timehandler import TimeHandler
 
 
 def get_specific_data(list_specific_stocks=None, fetch_data=True):
-    start_timestamp = datetime(2022, 8, 1)
-    end_timestamp = datetime(2023, 5, 5)
+    start_timestamp = datetime(2023, 9, 22)
+    end_timestamp = datetime(2024, 7, 22)
     exchangeName = "NASDAQ"
     limit = None
     update_before = False

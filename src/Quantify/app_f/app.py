@@ -39,7 +39,7 @@ def main():
     # Fetch data for entire test frame & manage slices
     exchangeName = "NASDAQ"
     n_best = 5
-    percent_l = 0.5
+    percent_l = 1
 
     list_of_final_symbols, dict_of_dfs = get_specific_data(fetch_data=False)
 
@@ -53,7 +53,9 @@ def main():
     tester_f: BaseTester = ForwardTester(
         list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
     )
-    tester_f.execute_strat(graph_positions=True, print_terminal=True)
+    tester_f.execute_strat(
+        graph_positions=False, print_terminal=False, amount_per_pos=100
+    )
 
     # tester_l: BaseTester = LiveTester(
     #     list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l

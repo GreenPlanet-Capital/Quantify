@@ -34,6 +34,14 @@ class TrailingMonitor(BaseMonitor):
         df_after_opp["daily_percent_change_price"] = (
             df_after_opp["close"].pct_change().fillna(0)
         )
+
+        df_after_opp["daily_percent_change_price"][
+            df_after_opp["daily_percent_change_price"] == np.inf
+        ] = 1
+        df_after_opp["daily_percent_change_price"][
+            df_after_opp["daily_percent_change_price"] == -np.inf
+        ] = -1
+
         df_after_opp["total_percent_change_price"] = (
             df_after_opp["daily_percent_change_price"].add(1).cumprod().sub(1)
         )
