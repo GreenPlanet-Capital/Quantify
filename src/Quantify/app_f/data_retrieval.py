@@ -3,24 +3,6 @@ from DataManager.datamgr import data_manager
 from DataManager.utils.timehandler import TimeHandler
 
 
-def get_specific_data(list_specific_stocks=None, fetch_data=True):
-    start_timestamp = datetime(2023, 9, 22)
-    end_timestamp = datetime(2024, 7, 22)
-    exchangeName = "NASDAQ"
-    limit = None
-    update_before = False
-
-    return get_data(
-        start_timestamp=start_timestamp,
-        end_timestamp=end_timestamp,
-        limit=limit,
-        exchangeName=exchangeName,
-        update_before=update_before,
-        list_specific_stocks=list_specific_stocks,
-        fetch_data=fetch_data,
-    )
-
-
 def get_data(
     start_timestamp: datetime,
     end_timestamp: datetime,

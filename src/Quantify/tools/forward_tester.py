@@ -85,7 +85,7 @@ class ForwardTester(BaseTester):
         opps_scores_dt = {op.ticker: score for op, score in zip(opps, opps_scores)}
 
         for pos in positions:
-            shares = amount_per_pos / pos.default_price
+            shares = amount_per_pos / pos.default_price if pos.default_price > 0 else 0
             total_profit += (
                 (pos.exit_price - pos.default_price)
                 * pos.order_type
@@ -94,7 +94,7 @@ class ForwardTester(BaseTester):
             )
 
         stats["pnl"] = total_profit
-        stats["total_investment"] = amount_per_pos * len(positions)
+        stats["total_investment"] = amount_per_pos * self.num_top
         stats["port_return"] = total_profit / stats["total_investment"]
 
         return stats

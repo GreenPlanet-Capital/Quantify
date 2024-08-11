@@ -21,9 +21,9 @@ class TrailingMonitor(BaseMonitor):
 
         df_all_scores = self.strat.dict_of_dataframes[ticker].copy()
 
-        df_all_scores["health_score"] = 0.60 * df_all_scores[
-            "rsi_health_score"
-        ] + 0.40 * (1 - df_all_scores["normalized macd"].replace({0: np.nan})).fillna(0)
+        df_all_scores["health_score"] = (0.60 * df_all_scores["rsi_health_score"]) + (
+            0.40 * (1 - df_all_scores["normalized macd"].replace({0: np.nan}))
+        ).fillna(0)
 
         df_after_opp = df_all_scores[
             df_all_scores["timestamp"].apply(TimeHandler.get_datetime_from_string)

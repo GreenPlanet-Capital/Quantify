@@ -1,11 +1,13 @@
+from datetime import datetime
 import numpy as np
 import pandas as pd
-from Quantify.app_f.data_retrieval import get_specific_data
+from Quantify.app_f.data_retrieval import get_data
 from Quantify.tools.base_tester import BaseTester
 from Quantify.constants.strategy_defs import get_strategy_definitons
 from Quantify.strats.base_strategy import BaseStrategy
 from Quantify.tools.live_tester import LiveTester
 from Quantify.tools.forward_tester import ForwardTester
+from Quantify.tools.portfolio_monitor import PortfolioMonitor
 
 
 pd.options.plotting.backend = "plotly"
@@ -38,10 +40,25 @@ setup_strategies()
 def main():
     # Fetch data for entire test frame & manage slices
     exchangeName = "NASDAQ"
+    start_timestamp = datetime(2024, 1, 1)
+    end_timestamp = datetime(2024, 7, 31)
+
+    limit = None
+    update_before = False
+
     n_best = 5
     percent_l = 1
+    specific_stocks = ["GOOGL"]
 
-    list_of_final_symbols, dict_of_dfs = get_specific_data(fetch_data=False)
+    list_of_final_symbols, dict_of_dfs = get_data(
+        start_timestamp,
+        end_timestamp,
+        limit,
+        exchangeName,
+        update_before,
+        list_specific_stocks=specific_stocks,
+        fetch_data=True,
+    )
 
     if len(list_of_final_symbols) == 0:
         print("Cancelling test...\n")
@@ -50,17 +67,20 @@ def main():
 
     strat: BaseStrategy = strat_id_to_class[1]  # Set strategy here
 
-    tester_f: BaseTester = ForwardTester(
-        list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
-    )
-    tester_f.execute_strat(
-        graph_positions=False, print_terminal=False, amount_per_pos=100
-    )
+    # tester_f: BaseTester = ForwardTester(
+    #     list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
+    # )
+    # tester_f.execute_strat(
+    #     graph_positions=False, print_terminal=False, amount_per_pos=100
+    # )
 
     # tester_l: BaseTester = LiveTester(
     #     list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
     # )
-    # tester_l.execute_strat(print_terminal=True)
+    # tester_l.execute_strat(print_terminal=True)]
+
+    port_mon = PortfolioMonitor(list_of_final_symbols, dict_of_dfs, strat, exchangeName)
+    port_mon.monitor_health()
 
     print()
 
