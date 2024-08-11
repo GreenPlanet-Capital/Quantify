@@ -51,3 +51,16 @@ Commands:
 ======================
 run  set  show  track  untrack
 ~~~
+
+### Robinhood Integration
+
+~~~shell
+foo@bar:~$ touch creds.ini
+~~~
+
+```
+[robinhood]
+email = EMAIL_HERE
+password = PASSWORD_HERE
+```
+

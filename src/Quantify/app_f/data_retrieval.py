@@ -11,6 +11,7 @@ def get_data(
     update_before,
     list_specific_stocks=None,
     fetch_data=True,
+    ensure_full_data=True
 ):
     this_manager = data_manager.DataManager(
         limit=limit, update_before=update_before, exchangeName=exchangeName
@@ -23,14 +24,13 @@ def get_data(
 
     if list_specific_stocks is None:
         dict_of_dfs = this_manager.get_stock_data(
-            start_dt, end_dt, api="Alpaca", fetch_data=fetch_data
+            start_dt, end_dt, api="Alpaca", fetch_data=fetch_data, ensure_full_data=ensure_full_data
         )
     else:
-        for stock in list_specific_stocks:
-            start_dt, end_dt, _ = this_manager.validate_timestamps(start_dt, end_dt)
-            dict_of_dfs[stock] = this_manager._daily_stocks.get_specific_stock_data(
-                stock, start_dt, end_dt
-            )
+        this_manager._basket_of_symbols = list_specific_stocks # Hack: fix later
+        dict_of_dfs = this_manager.get_stock_data(
+            start_dt, end_dt, api="Alpaca", fetch_data=fetch_data, ensure_full_data=ensure_full_data
+        )
 
-    list_of_final_symbols = list_specific_stocks or this_manager.list_of_symbols
+    list_of_final_symbols = this_manager.list_of_symbols
     return list_of_final_symbols, dict_of_dfs
