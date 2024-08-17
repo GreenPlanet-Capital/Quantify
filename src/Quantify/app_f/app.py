@@ -77,17 +77,17 @@ def main():
         print("No dataframes were found for the given dates")
         return
 
-    # tester_f: BaseTester = ForwardTester(
-    #     list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
-    # )
-    # tester_f.execute_strat(
-    #     graph_positions=True, print_terminal=False, amount_per_pos=100
-    # )
-
-    tester_l: BaseTester = LiveTester(
+    tester_f: BaseTester = ForwardTester(
         list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
     )
-    tester_l.execute_strat(print_terminal=True, graph_positions=True)
+    tester_f.execute_strat(
+        graph_positions=True, print_terminal=False, amount_per_pos=100
+    )
+
+    # tester_l: BaseTester = LiveTester(
+    #     list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
+    # )
+    # tester_l.execute_strat(print_terminal=True, graph_positions=True)
 
     # port_mon = PortfolioMonitor(dict_of_dfs, strat, exchangeName)
     # port_mon.monitor_health(print_debug=True, graph=True)

@@ -117,10 +117,6 @@ class GraphHandler:
                 col=1,
             )
 
-            import pdb
-
-            pdb.set_trace()
-
             colors = ["blue", "purple", "orange"]
 
             for i, col in enumerate(req_df_cols):
