@@ -1,5 +1,6 @@
 from typing import Dict, Tuple
 
+import numpy as np
 import pandas as pd
 from Quantify.constants.utils import find_loc
 from Quantify.positions.position import Position
@@ -10,19 +11,17 @@ import plotly.graph_objects as go
 
 class GraphHandler:
     @staticmethod
-    def graph_positions(
-        dict_of_dfs: Dict[str, pd.DataFrame],
-        dict_score_dfs: Dict[str, Tuple[pd.DataFrame, Position]],
-        min_start_index: int,
-    ):
+    def graph_positions(dict_score_dfs: Dict[str, Tuple[pd.DataFrame, Position]]):
         for ticker, (df, position) in dict_score_dfs.items():
+            req_df_cols = ["rsi", "health_score", "score"]
+
             fig = sp.make_subplots(
-                rows=3,
+                rows=1 + len(req_df_cols),
                 cols=1,
                 shared_xaxes=True,
-                subplot_titles=[f"{ticker} Stock Prices", "Technical Indicators"],
+                subplot_titles=[f"{ticker} Stock Price", "Technical Indicators"],
                 vertical_spacing=0.1,
-                row_heights=[0.7, 0.15, 0.15],
+                row_heights=[0.7, 0.15, 0.15, 0.15],
             )
 
             fig.add_trace(
@@ -32,14 +31,97 @@ class GraphHandler:
                     high=df["high"],
                     low=df["low"],
                     close=df["close"],
-                    name="Stock Prices",
+                    name="Stock Price",
                 ),
                 row=1,
                 col=1,
             )
 
-            req_df_cols = ["health_score", "score"]
-            colors = ["green", "red", "blue", "orange", "purple", "black"]
+            list_dates = [position.timestamp, position.exit_timestamp]
+            list_dates = list(map(TimeHandler.get_string_from_datetime, list_dates))
+
+            df["cleaned_timestamp"] = df["timestamp"].apply(
+                TimeHandler.get_clean_string_from_string
+            )
+            list_locs = find_loc(df, list_dates)
+
+            if not df.loc[list_locs[0]].empty:
+                GraphHandler.add_graph_annotations(
+                    fig, df.loc[list_locs[0]], position, "Enter", df.index[0]
+                )
+            if not df.loc[list_locs[1]].empty:
+                GraphHandler.add_graph_annotations(
+                    fig, df.loc[list_locs[1]], position, "Exit", df.index[0]
+                )
+
+            # Add MACD subplot with dynamic colors and smaller marker dots
+            fig.add_trace(
+                go.Scatter(
+                    x=df.index,
+                    y=df["macd"],
+                    mode="lines",
+                    marker=dict(color="red", size=3),  # Set the size of the marker dots
+                    name="MACD Line",
+                ),
+                row=1,
+                col=1,
+            )
+
+            fig.add_trace(
+                go.Scatter(
+                    x=df.index,
+                    y=df["macd signal line"],
+                    mode="lines",
+                    marker=dict(
+                        color="green", size=3
+                    ),  # Set the size of the marker dots
+                    name="MACD Signal Line",
+                ),
+                row=1,
+                col=1,
+            )
+
+            # Moving Average
+            fig.add_trace(
+                go.Scatter(x=df.index, y=df["sma_bb"], line_color="black", name="sma"),
+                row=1,
+                col=1,
+            )
+
+            # Upper Bound
+            fig.add_trace(
+                go.Scatter(
+                    x=df.index,
+                    y=df["upper_bb"],
+                    line_color="gray",
+                    line={"dash": "dash"},
+                    name="upper band",
+                    opacity=0.01,
+                ),
+                row=1,
+                col=1,
+            )
+
+            # Lower Bound fill in between with parameter 'fill': 'tonexty'
+            fig.add_trace(
+                go.Scatter(
+                    x=df.index,
+                    y=df["lower_bb"],
+                    line_color="gray",
+                    line={"dash": "dash"},
+                    fill="tonexty",
+                    name="lower band",
+                    opacity=0.01,
+                ),
+                row=1,
+                col=1,
+            )
+
+            import pdb
+
+            pdb.set_trace()
+
+            colors = ["blue", "purple", "orange"]
 
             for i, col in enumerate(req_df_cols):
                 fig.add_trace(
@@ -63,8 +145,9 @@ class GraphHandler:
                 ),  # Set x-axis type to category which removes the sat and sun gap
                 xaxis_title_text="Date",
                 yaxis_title_text="Price",
-                yaxis2_title_text=req_df_cols[0],  # Add y-axis title for ATR subplot
-                yaxis3_title_text=req_df_cols[1],  # Add y-axis title for RSI subplot
+                yaxis2_title_text=req_df_cols[0],
+                yaxis3_title_text=req_df_cols[1],
+                yaxis4_title_text=req_df_cols[2],
                 height=800,  # Set the height of the figure
                 width=1200,
             )  # Set the width of the figure
@@ -120,11 +203,11 @@ class GraphHandler:
             fig.show()
 
     @staticmethod
-    def add_graph_annotations(input_fig, list_locs, curr_position, position_do):
+    def add_graph_annotations(input_fig, list_locs, position, post_type, start_index=0):
         input_fig.add_annotation(
-            x=list_locs["timestamp"].iloc[0],
+            x=list_locs["timestamp"].index[0] - start_index,
             y=list_locs["close"].iloc[0],
-            text=f"{position_do} date (type: {curr_position.order_type})",
+            text=f"{post_type} date (type: {position.order_type})",
             showarrow=True,
             arrowhead=1,
         )

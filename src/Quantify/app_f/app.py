@@ -42,24 +42,24 @@ setup_strategies()
 def main():
     # Fetch data for entire test frame & manage slices
     exchangeName = "NASDAQ"
-    start_timestamp = datetime(2024, 1, 1)
+    start_timestamp = datetime(2023, 1, 1)
     end_timestamp = datetime(2024, 8, 10)
 
     limit = None
     update_before = False
 
-    n_best = 5
+    n_best = 10
     percent_l = 1
 
     strat_id = 1  # Set strategy here
     strat: BaseStrategy = strat_id_to_class[strat_id]
-    integration: BaseIntegration = RobinhoodIntegration(strat_id)
 
-    positions = integration.get_open_positions()
+    # integration: BaseIntegration = RobinhoodIntegration(strat_id)
+    # positions = integration.get_open_positions()
 
-    specific_stocks = [pos.ticker for pos in positions]
-    start_timestamp = min([pos.timestamp for pos in positions])
-    # specific_stocks = None
+    # specific_stocks = [pos.ticker for pos in positions][:5]
+    # start_timestamp = min([pos.timestamp for pos in positions])
+    specific_stocks = None
 
     list_of_final_symbols, dict_of_dfs = get_data(
         start_timestamp,
@@ -69,7 +69,7 @@ def main():
         update_before,
         list_specific_stocks=specific_stocks,
         fetch_data=False,
-        ensure_full_data=True,
+        ensure_full_data=specific_stocks is None,
     )
 
     if len(list_of_final_symbols) == 0:
@@ -84,13 +84,13 @@ def main():
     #     graph_positions=True, print_terminal=False, amount_per_pos=100
     # )
 
-    # tester_l: BaseTester = LiveTester(
-    #     list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
-    # )
-    # tester_l.execute_strat(print_terminal=True, graph_positions=True)
+    tester_l: BaseTester = LiveTester(
+        list_of_final_symbols, dict_of_dfs, exchangeName, strat, n_best, percent_l
+    )
+    tester_l.execute_strat(print_terminal=True, graph_positions=True)
 
-    port_mon = PortfolioMonitor(dict_of_dfs, strat, exchangeName)
-    port_mon.monitor_health(print_debug=True, graph=True)
+    # port_mon = PortfolioMonitor(dict_of_dfs, strat, exchangeName)
+    # port_mon.monitor_health(print_debug=True, graph=True)
 
     print()
 

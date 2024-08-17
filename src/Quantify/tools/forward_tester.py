@@ -70,7 +70,7 @@ class ForwardTester(BaseTester):
         pprint(stats)
 
         if graph_positions:
-            GraphHandler.graph_positions(self.dict_of_dfs, dict_score_dfs, min_start_index)
+            GraphHandler.graph_positions(dict_score_dfs)
 
         return positions
 
