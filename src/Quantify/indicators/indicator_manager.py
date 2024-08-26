@@ -24,7 +24,7 @@ class IndicatorManager:
             if (
                 dict_of_dataframes[ticker]["volume"]
                 * dict_of_dataframes[ticker]["close"]
-            ).mean() > 35_000_000 or dict_of_dataframes[ticker]["close"].iloc[-1] <= 5:
+            ).mean() <= 25_000_000 or dict_of_dataframes[ticker]["close"].iloc[-1] <= 5:
                 dict_of_dataframes[ticker][["score", "buy/sell signal"]] = 0
                 continue
             self.retrieve_single_score(ticker, dict_of_dataframes, score_func)

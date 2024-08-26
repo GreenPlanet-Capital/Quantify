@@ -1,27 +1,32 @@
 from typing import Dict, Tuple
 
-import numpy as np
 import pandas as pd
 from Quantify.constants.utils import find_loc
 from Quantify.positions.position import Position
 from DataManager.utils.timehandler import TimeHandler
+from Quantify.constants.op_utils import OptionsDfParams, get_options_df
 import plotly.subplots as sp
 import plotly.graph_objects as go
 
 
 class GraphHandler:
     @staticmethod
-    def graph_positions(dict_score_dfs: Dict[str, Tuple[pd.DataFrame, Position]]):
-        for ticker, (df, position) in dict_score_dfs.items():
+    def graph_positions(
+        dict_of_dfs: Dict[str, pd.DataFrame],
+        dict_score_dfs: Dict[str, Tuple[pd.DataFrame, Position]],
+        show_enter_exit: bool = True,
+    ):
+        for ticker, (df_score, position) in dict_score_dfs.items():
             req_df_cols = ["rsi", "health_score", "score"]
+            df = dict_of_dfs[ticker]
 
             fig = sp.make_subplots(
-                rows=1 + len(req_df_cols),
+                rows=2 + len(req_df_cols),
                 cols=1,
                 shared_xaxes=True,
                 subplot_titles=[f"{ticker} Stock Price", "Technical Indicators"],
                 vertical_spacing=0.1,
-                row_heights=[0.7, 0.15, 0.15, 0.15],
+                row_heights=[0.7, 0.3, 0.15, 0.15, 0.15],
             )
 
             fig.add_trace(
@@ -45,14 +50,19 @@ class GraphHandler:
             )
             list_locs = find_loc(df, list_dates)
 
-            if not df.loc[list_locs[0]].empty:
-                GraphHandler.add_graph_annotations(
-                    fig, df.loc[list_locs[0]], position, "Enter", df.index[0]
-                )
-            if not df.loc[list_locs[1]].empty:
-                GraphHandler.add_graph_annotations(
-                    fig, df.loc[list_locs[1]], position, "Exit", df.index[0]
-                )
+            if show_enter_exit:
+                if not df.loc[list_locs[0]].empty:
+                    GraphHandler.add_graph_annotations(
+                        fig,
+                        df.loc[list_locs[0]],
+                        position,
+                        "Enter",
+                        df.index[0],
+                    )
+                if not df.loc[list_locs[1]].empty:
+                    GraphHandler.add_graph_annotations(
+                        fig, df.loc[list_locs[1]], position, "Exit", df.index[0]
+                    )
 
             # Add MACD subplot with dynamic colors and smaller marker dots
             fig.add_trace(
@@ -63,7 +73,7 @@ class GraphHandler:
                     marker=dict(color="red", size=3),  # Set the size of the marker dots
                     name="MACD Line",
                 ),
-                row=1,
+                row=2,
                 col=1,
             )
 
@@ -77,13 +87,18 @@ class GraphHandler:
                     ),  # Set the size of the marker dots
                     name="MACD Signal Line",
                 ),
-                row=1,
+                row=2,
                 col=1,
             )
 
             # Moving Average
             fig.add_trace(
-                go.Scatter(x=df.index, y=df["sma_bb"], line_color="black", name="sma"),
+                go.Scatter(
+                    x=df.index,
+                    y=df["sma_bb"],
+                    line_color="black",
+                    name="sma",
+                ),
                 row=1,
                 col=1,
             )
@@ -120,30 +135,37 @@ class GraphHandler:
             colors = ["blue", "purple", "orange"]
 
             for i, col in enumerate(req_df_cols):
+                cur_df = df_score if col == "health_score" else df
                 fig.add_trace(
                     go.Scatter(
-                        x=df.index,
-                        y=df[col],
+                        x=cur_df.index,
+                        y=cur_df[col],
                         mode="lines",
                         line=dict(color=colors[i % len(colors)]),
                         name=col,
                     ),
-                    row=2 + i,
+                    row=3 + i,
                     col=1,
                 )
+
+            if "mark" in position.metadata:
+                order_type = "Call" if position.order_type == 1 else "Put"
+            else:
+                order_type = "Buy" if position.order_type == 1 else "Sell"
 
             fig.update_layout(
                 xaxis_rangeslider_visible=False,
                 template="plotly_white",
-                title_text=f"{ticker} Stock Analysis",
+                title_text=f"{ticker} Stock Analysis | Order Type: {order_type}",
                 xaxis=dict(
                     type="category"
                 ),  # Set x-axis type to category which removes the sat and sun gap
                 xaxis_title_text="Date",
                 yaxis_title_text="Price",
-                yaxis2_title_text=req_df_cols[0],
-                yaxis3_title_text=req_df_cols[1],
-                yaxis4_title_text=req_df_cols[2],
+                yaxis2_title_text="MACD",
+                yaxis3_title_text=req_df_cols[0],
+                yaxis4_title_text=req_df_cols[1],
+                yaxis5_title_text=req_df_cols[2],
                 height=800,  # Set the height of the figure
                 width=1200,
             )  # Set the width of the figure

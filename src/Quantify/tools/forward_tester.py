@@ -1,15 +1,16 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Set, Tuple
 from pandas import DataFrame
 from DataManager.utils.timehandler import TimeHandler
 import pandas as pd
 from tqdm import tqdm
 from Quantify.constants.graphhandler import GraphHandler
-from Quantify.constants.utils import find_loc, normalize_values
+from Quantify.constants.utils import normalize_values
 from Quantify.monitors.trailing_monitor import TrailingMonitor
 from Quantify.positions.opportunity import Opportunity
 from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
-from Quantify.tools.base_tester import BaseTester
+from Quantify.tools.base_tester import BaseTester, OptionsParams
+from Quantify.constants.op_utils import OptionsDfParams, get_options_df
 from pprint import pprint
 
 
@@ -22,9 +23,16 @@ class ForwardTester(BaseTester):
         strat: BaseStrategy,
         num_top: int,
         percent_l=0.7,
+        options_params: OptionsParams = None,
     ):
         super().__init__(
-            list_of_final_symbols, dict_of_dfs, exchangeName, strat, num_top, percent_l
+            list_of_final_symbols,
+            dict_of_dfs,
+            exchangeName,
+            strat,
+            num_top,
+            percent_l,
+            options_params,
         )
 
     def execute_strat(
@@ -32,6 +40,13 @@ class ForwardTester(BaseTester):
     ) -> List[Position]:
         self.print_terminal = print_terminal
         min_start_index = self.strat.timeframe.length
+
+        if self.options_params is not None:
+            self.list_of_final_symbols = list(self.common_tickers)
+            self.dict_of_dfs = {
+                k: v for k, v in self.dict_of_dfs.items() if k in self.common_tickers
+            }
+
         self.strat.set_data(
             list_of_tickers=self.list_of_final_symbols,
             dict_of_dataframes={
@@ -41,9 +56,18 @@ class ForwardTester(BaseTester):
         )
 
         self.strat.instantiate_indicator_mgr()
-
         opps = self.strat.run()
-        good_opps, last_op_idx = self.get_good_mix_of_opps(opps, self.num_top)
+
+        if self.options_params is not None:
+            self.combine_df_with_options()
+
+            op_opps = []
+            for opp in opps:
+                if self.optionize_opportunity(opp):
+                    op_opps.append(opp)
+            opps = op_opps
+
+        good_opps = self.get_good_mix_of_opps(opps, self.num_top)
         positions: List[Position] = [Position(op) for op in good_opps]
 
         if print_terminal:
@@ -57,7 +81,7 @@ class ForwardTester(BaseTester):
         assert min_df_len >= min_start_index
 
         current_dict_dfs, dict_score_dfs = self.advance_forward(
-            min_start_index, min_df_len, positions, opps, last_op_idx
+            min_start_index, min_df_len, positions, opps
         )
 
         if print_terminal:
@@ -70,13 +94,16 @@ class ForwardTester(BaseTester):
         pprint(stats)
 
         if graph_positions:
-            GraphHandler.graph_positions(dict_score_dfs)
+            GraphHandler.graph_positions(self.dict_of_dfs, dict_score_dfs)
 
         return positions
 
     def calculate_stats(
         self, positions: List[Position], opps: List[Opportunity], amount_per_pos: float
     ) -> float:
+        def safe_divide(a, b):
+            return a / b if b != 0 else 0
+
         stats = dict()
 
         total_profit = 0
@@ -84,19 +111,57 @@ class ForwardTester(BaseTester):
         opps_scores = normalize_values(pd.Series(opps_scores), 0, 1).values
 
         opps_scores_dt = {op.ticker: score for op, score in zip(opps, opps_scores)}
+        total_inv = 0
 
         for pos in positions:
-            shares = amount_per_pos / pos.default_price if pos.default_price > 0 else 0
-            total_profit += (
-                (pos.exit_price - pos.default_price)
-                * pos.order_type
-                * shares
-                * opps_scores_dt[pos.ticker]
-            )
+            if self.options_params is None:
+                shares = safe_divide(amount_per_pos, pos.default_price)
+                total_profit += (
+                    (pos.exit_price - pos.default_price)
+                    * pos.order_type
+                    * shares
+                    * opps_scores_dt[pos.ticker]
+                )
+                total_inv += shares * pos.default_price
+            else:
+                df_pos = self.dict_of_ops[pos.ticker]
+
+                cur_options = get_options_df(
+                    df_pos[
+                        df_pos["timestamp"]
+                        == TimeHandler.get_string_from_datetime(pos.exit_timestamp)
+                    ].iloc[0],
+                    [
+                        OptionsDfParams(
+                            "c" if pos.order_type == 1 else "p",
+                            pos.metadata["strike"],
+                            max(
+                                1,
+                                (
+                                    pos.exit_timestamp
+                                    - TimeHandler.get_datetime_from_string(
+                                        pos.metadata["expiration"]
+                                    )
+                                ).days,
+                            ),
+                        )
+                    ],
+                    self.get_annual_std(df_pos),
+                )
+
+                cur_option = cur_options.iloc[0]
+                total_profit += (
+                    (cur_option["mark"] - pos.metadata["mark"])
+                    * self.options_params.num_contracts
+                    * 100
+                )
+                total_inv += (
+                    pos.metadata["mark"] * self.options_params.num_contracts * 100
+                )
 
         stats["pnl"] = total_profit
-        stats["total_investment"] = amount_per_pos * self.num_top
-        stats["port_return"] = total_profit / stats["total_investment"]
+        stats["total_investment"] = total_inv
+        stats["port_return"] = safe_divide(total_profit, total_inv)
 
         return stats
 
@@ -106,7 +171,6 @@ class ForwardTester(BaseTester):
         end_index,
         positions: List[Position],
         opps: List[Opportunity],
-        cur_opps_idx: int,
     ) -> Tuple[Dict[str, DataFrame], Dict[str, DataFrame]]:
         current_dict_dfs, dict_score_dfs = self.dict_of_dfs, dict()
 
@@ -122,6 +186,7 @@ class ForwardTester(BaseTester):
             health_monitor.multiple_health_check(positions)
         )
 
+        picked_tickers: Set[str] = {pos.ticker for pos in positions}
         num_active = self.num_top
 
         for i in tqdm(
@@ -130,13 +195,23 @@ class ForwardTester(BaseTester):
         ):
             for ticker, tuple_df_pos in dict_score_dfs.items():
                 score_df, this_pos = tuple_df_pos
+                current_df = current_dict_dfs[ticker].loc[i]
+
                 if (
-                    not score_df.empty
-                    and score_df["exit_signal"].loc[i]
-                    and this_pos.is_active
-                ):
+                    (not score_df.empty and score_df["exit_signal"].loc[i])
+                    or (
+                        self.options_params is not None
+                        and (
+                            TimeHandler.get_datetime_from_string(
+                                this_pos.metadata["expiration"]
+                            )
+                            <= TimeHandler.get_clean_datetime_from_string(
+                                current_df["timestamp"]
+                            )
+                        )
+                    )
+                ) and this_pos.is_active:
                     this_pos.is_active = False
-                    current_df = current_dict_dfs[ticker].loc[i]
                     exit_timestamp, exit_price = (
                         TimeHandler.get_clean_datetime_from_string(
                             current_df["timestamp"]
@@ -149,10 +224,16 @@ class ForwardTester(BaseTester):
 
                     num_active -= 1
 
-            while cur_opps_idx < len(opps) - 1 and num_active < self.num_top:
-                next_good_opps, cur_opps_idx = self.get_good_mix_of_opps(
-                    opps[cur_opps_idx + 1 :], self.num_top - num_active
+            # FIXME: optimize later, might be slow
+            if num_active < self.num_top and (
+                opps_not_picked := [
+                    opp for opp in opps if opp.ticker not in picked_tickers
+                ]
+            ):
+                next_good_opps = self.get_good_mix_of_opps(
+                    opps_not_picked, self.num_top - num_active
                 )
+
                 for op in next_good_opps:
                     pos = Position(op)
                     pos.default_price = current_dict_dfs[pos.ticker].loc[i]["close"]
@@ -160,6 +241,7 @@ class ForwardTester(BaseTester):
 
                     dict_score_dfs[pos.ticker] = (health_monitor.health_check(pos), pos)
                     num_active += 1
+                    picked_tickers.add(pos.ticker)
 
         self.strat.zero_data()
         return current_dict_dfs, dict_score_dfs

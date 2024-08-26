@@ -72,4 +72,4 @@ class PortfolioMonitor:
                     print(pos)
 
                 if graph:
-                    GraphHandler.graph_positions(dict_score_dfs)
+                    GraphHandler.graph_positions(self.dict_of_dfs, dict_score_dfs)

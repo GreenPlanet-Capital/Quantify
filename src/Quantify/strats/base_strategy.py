@@ -29,11 +29,11 @@ class BaseStrategy:
 
     def set_data(
         self,
-        list_of_tickers: list[str],
-        dict_of_dataframes: dict[str, DataFrame],
+        list_of_tickers: List[str],
+        dict_of_dataframes: Dict[str, DataFrame],
         exchangeName: str,
     ):
-        lengths = [len(df) for df in dict_of_dataframes.values()]
+        lengths = [len(df["timestamp"].unique()) for df in dict_of_dataframes.values()]
         max_rows = max(lengths)
         min_rows = min(lengths)
 

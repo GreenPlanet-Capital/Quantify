@@ -150,3 +150,4 @@ DataManager/
 !setup.cfg
 graph_files/*.html
 creds.ini
+op_tickers.txt
