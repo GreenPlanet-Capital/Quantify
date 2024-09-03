@@ -46,7 +46,7 @@ def main():
     start_timestamp = datetime(2023, 1, 1)
     end_timestamp = datetime(2024, 8, 10)
 
-    limit = 100
+    limit = None
     update_before = False
 
     n_best = 10

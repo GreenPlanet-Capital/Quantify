@@ -3,9 +3,11 @@ from typing import List
 from py_vollib.black_scholes.implied_volatility import implied_volatility as iv
 from py_vollib.black_scholes import black_scholes as bs
 from py_vollib.black_scholes.greeks.analytical import delta, gamma, rho, theta, vega
+from py_lets_be_rational.exceptions import BelowIntrinsicException
 import pandas as pd
 from dataclasses import dataclass
 from DataManager.utils.timehandler import TimeHandler
+import traceback
 
 
 # FIXME: this calculates for european options only
@@ -50,8 +52,8 @@ def get_options_df(
             cur["timestamp"]
         ) + timedelta(days=param.expiration_date_days)
 
-        price, imp_v, theta_calc, delta_calc, rho_calc, vega_calc, gamma_calc = (
-            greek_val(
+        try:
+            gv = greek_val(
                 param.call_or_put,
                 cur["close"],
                 cur["strike"],
@@ -59,7 +61,11 @@ def get_options_df(
                 r,
                 annual_std,
             )
-        )
+        except Exception:
+            print(f"Error while computing greek val: {traceback.format_exc()}")
+            continue
+
+        price, imp_v, theta_calc, delta_calc, rho_calc, vega_calc, gamma_calc = gv
 
         cur["mark"] = price
         cur["vol"] = imp_v

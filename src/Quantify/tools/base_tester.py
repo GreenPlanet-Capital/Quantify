@@ -135,11 +135,14 @@ class BaseTester:
             ]
 
             # FIXME: check if this is the correct way to calculate annual std
-            avail_options = get_options_df(
-                df_time.iloc[0],
-                op_params,
-                self.get_annual_std(df_opp),
-            )
+            if (
+                avail_options := get_options_df(
+                    df_time.iloc[0],
+                    op_params,
+                    self.get_annual_std(df_opp),
+                )
+            ).empty:
+                return False
         else:
             avail_options = df_time[df_time["bid"].notnull()]
             avail_options["mark"] = (avail_options["bid"] + avail_options["ask"]) / 2
