@@ -35,7 +35,7 @@ class BaseTester:
         strat: BaseStrategy,
         num_top: int,
         percent_l: float,
-        options_params: OptionsParams = None,
+        options_params: Union[OptionsParams, None] = None,
     ):
         self.list_of_final_symbols = list_of_final_symbols
         self.dict_of_dfs = dict_of_dfs
@@ -53,7 +53,7 @@ class BaseTester:
 
     def get_good_mix_of_opps(
         self, opps: List[Opportunity], num_opps: int
-    ) -> Tuple[List[Opportunity], int]:
+    ) -> List[Opportunity]:
         n_longs_req = int(self.percent_l * num_opps)
         n_shorts_req = num_opps - n_longs_req
         mixed_opps: List[Opportunity] = []

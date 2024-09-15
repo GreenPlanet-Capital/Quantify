@@ -1,4 +1,4 @@
-DataManager @ git+ssh://git@github.com/GreenPlanet-Capital/DataManager@marketstore
+# DataManager @ git+ssh://git@github.com/GreenPlanet-Capital/DataManager@marketstore
 matplotlib
 tqdm
 prettytable
@@ -8,3 +8,4 @@ ta==0.10.1
 statsmodels
 alpaca-trade-api
 robin_stocks
+py_vollib==1.0.1

@@ -44,10 +44,11 @@ def main():
     # Fetch data for entire test frame & manage slices
     exchangeName = "NASDAQ"
     start_timestamp = datetime(2023, 1, 1)
-    end_timestamp = datetime(2024, 8, 10)
+    end_timestamp = datetime(2024, 9, 15)
 
     limit = None
     update_before = False
+    fetch_data = True
 
     n_best = 10
     percent_l = 0.8
@@ -82,7 +83,7 @@ def main():
         exchangeName,
         update_before,
         list_specific_stocks=specific_stocks,
-        fetch_data=False,
+        fetch_data=fetch_data,
         ensure_full_data=specific_stocks is None,
     )
 

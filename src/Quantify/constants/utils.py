@@ -3,7 +3,10 @@ import pandas as pd
 
 
 def get_normalized_value(x, lower_bound, upper_bound, max_x, min_x):
-    return ((upper_bound - lower_bound) * (x - min_x)) / (max_x - min_x) + lower_bound
+    return (
+        ((upper_bound - lower_bound) * (x - min_x))
+        / ((max_x - min_x) if max_x != min_x else 1e-6)
+    ) + lower_bound
 
 
 def normalize_values(series: pd.Series, lower_bound, upper_bound) -> pd.Series:

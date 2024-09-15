@@ -34,7 +34,7 @@ class LiveTester(BaseTester):
 
         self.strat.instantiate_indicator_mgr()
         opps: List[Opportunity] = self.strat.run()
-        opps = self.get_good_mix_of_opps(opps, self.num_top)[0]
+        opps = self.get_good_mix_of_opps(opps, self.num_top)
 
         if print_terminal:
             for pos in opps:

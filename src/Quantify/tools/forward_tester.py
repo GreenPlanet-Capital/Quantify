@@ -1,4 +1,4 @@
-from typing import List, Dict, Set, Tuple
+from typing import List, Dict, Set, Tuple, Union
 from pandas import DataFrame
 from DataManager.utils.timehandler import TimeHandler
 import pandas as pd
@@ -23,7 +23,7 @@ class ForwardTester(BaseTester):
         strat: BaseStrategy,
         num_top: int,
         percent_l=0.7,
-        options_params: OptionsParams = None,
+        options_params: Union[OptionsParams, None] = None,
     ):
         super().__init__(
             list_of_final_symbols,
@@ -159,9 +159,9 @@ class ForwardTester(BaseTester):
                     pos.metadata["mark"] * self.options_params.num_contracts * 100
                 )
 
-        stats["pnl"] = total_profit
-        stats["total_investment"] = total_inv
-        stats["port_return"] = safe_divide(total_profit, total_inv)
+        stats["pnl"] = float(total_profit)
+        stats["total_investment"] = float(total_inv)
+        stats["port_return"] = float(safe_divide(total_profit, total_inv))
 
         return stats
 
