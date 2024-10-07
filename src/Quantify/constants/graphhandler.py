@@ -15,6 +15,7 @@ class GraphHandler:
         dict_of_dfs: Dict[str, pd.DataFrame],
         dict_score_dfs: Dict[str, Tuple[pd.DataFrame, Position]],
         show_enter_exit: bool = True,
+        open_plot: bool = True,
     ):
         for ticker, (df_score, position) in dict_score_dfs.items():
             req_df_cols = ["rsi", "health_score", "score"]
@@ -170,7 +171,10 @@ class GraphHandler:
                 width=1200,
             )  # Set the width of the figure
 
-            fig.show()
+            if open_plot:
+                fig.show()
+        
+        return fig
 
     @staticmethod
     def graph_positions_legacy(

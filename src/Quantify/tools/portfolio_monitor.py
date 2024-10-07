@@ -6,6 +6,7 @@ from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
 from Quantify.constants.graphhandler import GraphHandler
 from DataManager.utils.timehandler import TimeHandler
+import plotly
 
 
 class PortfolioMonitor:
@@ -19,7 +20,9 @@ class PortfolioMonitor:
         self.strat = strat
         self.exchangeName = exchangeName
 
-    def monitor_health(self, print_debug: bool = True, graph: bool = False) -> None:
+    def monitor_health(
+        self, print_debug: bool = True, graph: bool = False, open_plot: bool = True
+    ) -> None:
         min_start_index = self.strat.timeframe.length
 
         # make it more efficient by bundling similar dataframes together
@@ -39,6 +42,7 @@ class PortfolioMonitor:
             opps = self.strat.run()
             for op in opps:
                 op.order_type = 1  # 1 is for long, -1 is for short, 0 is for neutral
+                # TODO - do not hardcode this order type
 
             positions: List[Position] = [Position(op) for op in opps]
 
@@ -72,4 +76,11 @@ class PortfolioMonitor:
                     print(pos)
 
                 if graph:
-                    GraphHandler.graph_positions(self.dict_of_dfs, dict_score_dfs)
+                    fig = GraphHandler.graph_positions(
+                        self.dict_of_dfs,
+                        dict_score_dfs,
+                        show_enter_exit=True,
+                        open_plot=open_plot,
+                    )
+                    if not open_plot:
+                        return fig
