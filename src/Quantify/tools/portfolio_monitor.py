@@ -1,4 +1,5 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
+from plotly.graph_objs import Figure
 from pandas import DataFrame
 import pandas as pd
 from Quantify.monitors.trailing_monitor import TrailingMonitor
@@ -6,7 +7,6 @@ from Quantify.positions.position import Position
 from Quantify.strats.base_strategy import BaseStrategy
 from Quantify.constants.graphhandler import GraphHandler
 from DataManager.utils.timehandler import TimeHandler
-import plotly
 
 
 class PortfolioMonitor:
@@ -22,7 +22,7 @@ class PortfolioMonitor:
 
     def monitor_health(
         self, print_debug: bool = True, graph: bool = False, open_plot: bool = True
-    ) -> None:
+    ) -> Union[None, Figure]:
         min_start_index = self.strat.timeframe.length
 
         # make it more efficient by bundling similar dataframes together
