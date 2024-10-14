@@ -94,6 +94,7 @@ class BaseTester:
         last_dt: datetime = unique_df["date"].max()
         unique_df = unique_df[unique_df["date"].dt.year == last_dt.year]
 
+        # FIXME: check if this is the correct way to calculate annual std
         return (
             unique_df["close"].pct_change().rolling(VOL_WINDOW_SIZE).std()
             * (len(unique_df) ** 0.5)
@@ -107,7 +108,7 @@ class BaseTester:
         ]
 
         if df_time["bid"].isnull().values.all():
-            days_buffer = timedelta(days=10)  # TODO - check if this is a good buffer
+            days_buffer = timedelta(days=14)
             start_dt = opportunity.timestamp - days_buffer
             end_dt = opportunity.timestamp + days_buffer
 
@@ -134,7 +135,6 @@ class BaseTester:
                 for _, neigh_s in neigh_options.iterrows()
             ]
 
-            # FIXME: check if this is the correct way to calculate annual std
             if (
                 avail_options := get_options_df(
                     df_time.iloc[0],
@@ -160,7 +160,7 @@ class BaseTester:
         if avail_options.empty:
             return False
 
-        # TODO: optimize later, for now go with the scoreth opportunity after sorting by mark
+        # TODO: find better strat, for now go with the scoreth opportunity after sorting by mark
         avail_options = avail_options.sort_values("mark", ascending=True)
         score = opportunity.metadata["score"]
 

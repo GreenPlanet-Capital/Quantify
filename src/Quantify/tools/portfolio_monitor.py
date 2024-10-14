@@ -21,7 +21,11 @@ class PortfolioMonitor:
         self.exchangeName = exchangeName
 
     def monitor_health(
-        self, print_debug: bool = True, graph: bool = False, open_plot: bool = True
+        self,
+        print_debug: bool = True,
+        graph: bool = False,
+        open_plot: bool = True,
+        default_order_type: int = 1,
     ) -> Union[None, Figure]:
         min_start_index = self.strat.timeframe.length
 
@@ -41,8 +45,7 @@ class PortfolioMonitor:
 
             opps = self.strat.run()
             for op in opps:
-                op.order_type = 1  # 1 is for long, -1 is for short, 0 is for neutral
-                # TODO - do not hardcode this order type
+                op.order_type = default_order_type
 
             positions: List[Position] = [Position(op) for op in opps]
 

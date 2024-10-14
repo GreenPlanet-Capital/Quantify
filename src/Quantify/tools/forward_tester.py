@@ -224,7 +224,6 @@ class ForwardTester(BaseTester):
 
                     num_active -= 1
 
-            # FIXME: optimize later, might be slow
             if num_active < self.num_top and (
                 opps_not_picked := [
                     opp for opp in opps if opp.ticker not in picked_tickers

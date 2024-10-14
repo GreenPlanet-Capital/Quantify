@@ -20,7 +20,6 @@ class IndicatorManager:
         for ticker in tqdm(
             self.list_of_tickers, desc=f"{sid_strategy}: {name_strategy} "
         ):
-            # FIXME: An arbitrary minimum dollar volume of $25M was chosen here (also penny stocks <= $5 ignored)
             if (
                 dict_of_dataframes[ticker]["volume"]
                 * dict_of_dataframes[ticker]["close"]

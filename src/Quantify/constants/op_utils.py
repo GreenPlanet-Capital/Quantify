@@ -41,7 +41,7 @@ class OptionsDfParams:
 def get_options_df(
     s: pd.Series, options_params: List[OptionsDfParams], annual_std: float
 ) -> pd.DataFrame:
-    r = 0.07  # TODO - check if this is the correct risk free rate
+    r = 0.05
     res: List[pd.Series] = []
 
     for param in options_params:
