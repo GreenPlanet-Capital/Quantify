@@ -48,7 +48,6 @@ class Macd_Rsi_Boll(BaseStrategy):
             if order_type is None
             else order_type
         )
-        print(input_df["buy/sell signal"])
 
         # Calculate different values for rsi based on buy and sell
         input_df["rsi_health_score"] = input_df.apply(
