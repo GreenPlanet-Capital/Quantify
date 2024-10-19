@@ -16,6 +16,7 @@ class IndicatorManager:
         name_strategy: str,
         score_func,
         dict_of_dataframes: Dict[str, DataFrame],
+        constrain_order_type: int | None = None,
     ):
         for ticker in tqdm(
             self.list_of_tickers, desc=f"{sid_strategy}: {name_strategy} "
@@ -26,11 +27,19 @@ class IndicatorManager:
             ).mean() <= 25_000_000 or dict_of_dataframes[ticker]["close"].iloc[-1] <= 5:
                 dict_of_dataframes[ticker][["score", "buy/sell signal"]] = 0
                 continue
-            self.retrieve_single_score(ticker, dict_of_dataframes, score_func)
+            self.retrieve_single_score(
+                ticker, dict_of_dataframes, score_func, constrain_order_type
+            )
 
-    def retrieve_single_score(self, ticker_name, dict_of_dataframes, score_func):
+    def retrieve_single_score(
+        self,
+        ticker_name,
+        dict_of_dataframes,
+        score_func,
+        constrain_order_type: int | None = None,
+    ):
         for indicator in self.list_indicators:
             indicator.run(dict_of_dataframes[ticker_name])
         dict_of_dataframes[ticker_name]["score"] = score_func(
-            dict_of_dataframes[ticker_name]
+            dict_of_dataframes[ticker_name], constrain_order_type
         )["score"]

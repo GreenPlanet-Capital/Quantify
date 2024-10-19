@@ -8,15 +8,24 @@ from Quantify.strats.base_strategy import BaseStrategy
 
 
 class TrailingMonitor(BaseMonitor):
-    def __init__(self, sid: int, name: str, strat: BaseStrategy):
-        super(TrailingMonitor, self).__init__(sid, name, strat)
+    def __init__(
+        self,
+        sid: int,
+        name: str,
+        strat: BaseStrategy,
+        constrain_order_type: None | int = None,
+    ):
+        super(TrailingMonitor, self).__init__(sid, name, strat, constrain_order_type)
 
     def health_check(self, cur_position: Position) -> DataFrame:
         super().health_check(cur_position)
 
         ticker, transaction_date = cur_position.ticker, cur_position.timestamp
         self.strat.indicator_manager.retrieve_single_score(
-            ticker, self.strat.dict_of_dataframes, self.strat._score
+            ticker,
+            self.strat.dict_of_dataframes,
+            self.strat._score,
+            self.constrain_order_type,
         )
 
         df_all_scores = self.strat.dict_of_dataframes[ticker].copy()

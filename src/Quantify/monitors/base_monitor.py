@@ -7,10 +7,11 @@ from Quantify.strats.base_strategy import BaseStrategy
 
 
 class BaseMonitor:
-    def __init__(self, sid: int, name: str, strat: BaseStrategy):
+    def __init__(self, sid: int, name: str, strat: BaseStrategy, constrain_order_type: None | int = None):
         self.sid = sid
         self.name = name
         self.strat = strat
+        self.constrain_order_type = constrain_order_type
 
     def health_check(self, cur_position: Position) -> DataFrame:
         assert (

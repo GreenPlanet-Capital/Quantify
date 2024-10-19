@@ -27,7 +27,10 @@ class Macd_Rsi_Boll(BaseStrategy):
             self.list_of_tickers,
         )
 
-    def _score(self, input_df: DataFrame):
+    def _score(self, input_df: DataFrame, order_type: int | None = None) -> DataFrame:
+        if order_type is not None and order_type not in [-1, 1]:
+            raise ValueError("Order type must be 1 (buy) or -1 (sell)")
+
         # Shifting RSI down by one and constricting
         input_df["shifted rsi"] = input_df["rsi"].shift(1)
         input_df["c_shifted_rsi"] = input_df.apply(
@@ -40,7 +43,12 @@ class Macd_Rsi_Boll(BaseStrategy):
 
         # Calculate +1 for buy and -1 for sell
         input_df["buy/sell signal"] = 0
-        input_df["buy/sell signal"] = input_df["macd"].apply(generic_utils.buy_sell_mva)
+        input_df["buy/sell signal"] = (
+            input_df["macd"].apply(generic_utils.buy_sell_mva)
+            if order_type is None
+            else order_type
+        )
+        print(input_df["buy/sell signal"])
 
         # Calculate different values for rsi based on buy and sell
         input_df["rsi_health_score"] = input_df.apply(

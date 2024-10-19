@@ -43,10 +43,7 @@ class PortfolioMonitor:
 
             self.strat.instantiate_indicator_mgr()
 
-            opps = self.strat.run()
-            for op in opps:
-                op.order_type = default_order_type
-
+            opps = self.strat.run(constrain_order_type=default_order_type)
             positions: List[Position] = [Position(op) for op in opps]
 
             self.strat.set_data(
@@ -56,7 +53,7 @@ class PortfolioMonitor:
             )
 
             health_monitor = TrailingMonitor(
-                self.strat.sid, "Trailing Health Check", self.strat
+                self.strat.sid, "Trailing Health Check", self.strat, default_order_type
             )
             dict_score_dfs: Dict[str, Tuple[pd.DataFrame, Position]] = (
                 health_monitor.multiple_health_check(positions)

@@ -55,7 +55,7 @@ class BaseStrategy:
     def instantiate_indicator_mgr(self):
         pass
 
-    def run(self):
+    def run(self, constrain_order_type: int | None = None) -> List[Opportunity]:
         """
         Requires self.list_of_tickers and self.dict_of_dataframes to be set
         Returns a List of Opportunity objects or an empty List
@@ -68,7 +68,7 @@ class BaseStrategy:
         ), "DataNoneError: Dict of Dataframes not set for strategy"
 
         self.indicator_manager.retrieve_scores(
-            self.sid, self.name, self._score, self.dict_of_dataframes
+            self.sid, self.name, self._score, self.dict_of_dataframes, constrain_order_type
         )
         opportunity_list = self.get_opportunity_list()
 
@@ -115,7 +115,7 @@ class BaseStrategy:
             opportunity_list.append(self._generate_opportunity(dictionary))
         return opportunity_list
 
-    def _score(self, input_df: DataFrame):
+    def _score(self, input_df: DataFrame, order_type: int | None = None) -> DataFrame:
         return DataFrame()
 
     def __repr__(self) -> str:
