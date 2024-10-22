@@ -70,7 +70,7 @@ class Macd_Rsi_Boll(BaseStrategy):
         # Calculate score
         score_df = DataFrame()
 
-        # TODO Account for hard carry
+        # TODO Account for hard carry (RF algo to optimize)
         score_df["score"] = (
             0.50 * input_df["rsi_score"]
             + 0.35 * input_df["normalized difference"] * input_df["normalized macd"]
